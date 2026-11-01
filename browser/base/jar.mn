@@ -19,6 +19,7 @@ browser.jar:
         content/browser/vela/harbor.js                 (content/vela/harbor.js)
         content/browser/vela/vela-readinglist.js       (content/vela/vela-readinglist.js)
         content/browser/vela/vela-quicknotes.js        (content/vela/vela-quicknotes.js)
+        content/browser/vela/vela-workspaces.js        (content/vela/vela-workspaces.js)
         content/browser/logos/etp-mobile.svg          (content/logos/etp-mobile.svg)
         content/browser/logos/fxa-logo.svg            (content/logos/fxa-logo.svg)
         content/browser/logos/ipprotection-states.svg  (content/logos/ipprotection-states.svg)

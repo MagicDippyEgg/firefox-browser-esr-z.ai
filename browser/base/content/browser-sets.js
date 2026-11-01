@@ -136,6 +136,12 @@ document.addEventListener(
           case "Vela:AboutVela":
             VelaBrowser.openAboutVela();
             break;
+          case "Vela:Workspaces":
+            VelaBrowser.openWorkspaces();
+            break;
+          case "Vela:AddToReadingList":
+            VelaBrowser.addToReadingList();
+            break;
           case "cmd_find":
             gLazyFindCommand("onFindCommand");
             break;

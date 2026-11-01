@@ -17,7 +17,7 @@ const VelaQuickNotes = {
 
   load() {
     try {
-      return Services.prefs.getCharPref(this.PREF, "");
+      return Services.prefs.getStringPref(this.PREF, "");
     } catch (e) {
       console.warn("VelaQuickNotes: load failed", e);
       return "";
@@ -27,11 +27,11 @@ const VelaQuickNotes = {
   save(text) {
     if (typeof text !== "string") return;
     if (text.length > this.MAX) text = text.slice(0, this.MAX);
-    Services.prefs.setCharPref(this.PREF, text);
+    Services.prefs.setStringPref(this.PREF, text);
   },
 
   clear() {
-    Services.prefs.setCharPref(this.PREF, "");
+    Services.prefs.setStringPref(this.PREF, "");
   },
 };
 

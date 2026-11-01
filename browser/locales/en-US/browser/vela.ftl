@@ -43,3 +43,24 @@ vela-menu-harbor = Harbor
 vela-menu-new-tide = New Tide
 vela-menu-sepia-reader = Sepia Reader
 vela-menu-about-vela = About Vela
+vela-menu-workspaces = Workspaces
+vela-menu-add-to-reading-list = Add to Reading List
+
+## Workspaces
+
+vela-workspaces-title = Vela Workspaces
+vela-workspaces-empty = No saved workspaces yet.
+vela-workspaces-active = Active workspace: { $name } ({ $tabs } tabs)
+
+## Reading List
+
+vela-reading-list-added = Added to Reading List: { $title }
+
+## Sepia Reader
+
+vela-sepia-reader-title = Sepia Reader
+vela-sepia-reader-warmth = Warmth
+vela-sepia-reader-font-size = Font size
+vela-sepia-reader-line-height = Line height
+vela-sepia-reader-warm-bg = Warm background
+vela-sepia-reader-warm-links = Warm link colours

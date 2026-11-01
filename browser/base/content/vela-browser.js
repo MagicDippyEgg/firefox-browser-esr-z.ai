@@ -185,14 +185,23 @@ var VelaBrowser = {
 
   /**
    * Sepia Reader applies a warm sepia tint to the active page *without*
-   * transforming it into Reader View. It works by injecting a <style>
-   * element into the page document via a registered frame script.
+   * transforming it into Reader View. Useful for long-form reading on
+   * bright white sites that don't deserve a full reader-mode transform.
    *
-   * Per-tab state is tracked on the tab element via the [vela-sepia]
-   * attribute. When the user navigates within a tab that has sepia
-   * enabled, the frame script re-applies the overlay on DOMContentLoaded.
-   *
-   * The frame script is registered once per browser window via init().
+   * Implementation:
+   *   - A registered frame script (vela-sepia-framescript.js) injects a
+   *     <style> element with CSS `filter: sepia()` on <html> plus a warm
+   *     parchment background colour and warm link colours.
+   *   - Per-tab state is tracked on the tab element via the [vela-sepia]
+   *     attribute. The frame script re-applies the overlay on
+   *     DOMContentLoaded so navigation within a sepia tab keeps the tint.
+   *   - A floating control panel (Sepia Reader toolbar) appears at the
+   *     top-right whenever Sepia Reader is on, with sliders for intensity,
+   *     font scale, line height, and toggles for warm background and warm
+   *     link colours. The panel is injected into the browser chrome and
+   *     styled by vela-theme.css.
+   *   - Settings are persisted in the vela.sepia-reader.* prefs and
+   *     applied to every tab where Sepia Reader is enabled.
    */
   _sepiaFrameScriptURL:
     "chrome://browser/content/vela-sepia-framescript.js",
@@ -207,6 +216,39 @@ var VelaBrowser = {
     if (browser?.messageManager) {
       browser.messageManager.sendAsyncMessage("Vela:SepiaReader:Toggle", {
         enable: next,
+        settings: this._sepiaSettings(),
+      });
+    }
+    if (next) {
+      this._showSepiaPanel();
+    } else {
+      this._hideSepiaPanel();
+    }
+  },
+
+  /**
+   * Returns the current Sepia Reader settings from prefs, with defaults.
+   */
+  _sepiaSettings() {
+    return {
+      intensity: Services.prefs.getFloatPref("vela.sepia-reader.intensity", 0.30),
+      fontScale: Services.prefs.getFloatPref("vela.sepia-reader.font-scale", 1.05),
+      lineHeight: Services.prefs.getFloatPref("vela.sepia-reader.line-height", 1.65),
+      warmBg: Services.prefs.getBoolPref("vela.sepia-reader.warm-bg", true),
+      warmLinks: Services.prefs.getBoolPref("vela.sepia-reader.warm-links", true),
+    };
+  },
+
+  /**
+   * Pushes the current settings to the active sepia-enabled tab.
+   */
+  _pushSepiaSettings() {
+    const tab = gBrowser?.selectedTab;
+    if (!tab || tab.getAttribute("vela-sepia") !== "true") return;
+    const browser = gBrowser.getBrowserForTab(tab);
+    if (browser?.messageManager) {
+      browser.messageManager.sendAsyncMessage("Vela:SepiaReader:Settings", {
+        settings: this._sepiaSettings(),
       });
     }
   },
@@ -221,8 +263,97 @@ var VelaBrowser = {
     if (tab.getAttribute("vela-sepia") === "true" && browser.messageManager) {
       browser.messageManager.sendAsyncMessage("Vela:SepiaReader:Toggle", {
         enable: true,
+        settings: this._sepiaSettings(),
       });
     }
+  },
+
+  /**
+   * Shows the Sepia Reader floating control panel. The panel is created
+   * lazily and reused across toggles.
+   */
+  _showSepiaPanel() {
+    let panel = document.getElementById("vela-sepia-panel");
+    if (!panel) {
+      panel = this._buildSepiaPanel();
+      document.documentElement.appendChild(panel);
+    }
+    panel.removeAttribute("hidden");
+  },
+
+  _hideSepiaPanel() {
+    document.getElementById("vela-sepia-panel")?.setAttribute("hidden", "true");
+  },
+
+  _buildSepiaPanel() {
+    const s = this._sepiaSettings();
+    const panel = document.createElement("div");
+    panel.id = "vela-sepia-panel";
+    panel.innerHTML = `
+      <div class="vela-sepia-header">
+        <span class="vela-sepia-title">Sepia Reader</span>
+        <button class="vela-sepia-close" title="Turn off Sepia Reader">×</button>
+      </div>
+      <label class="vela-sepia-row">
+        <span>Warmth</span>
+        <input type="range" min="0" max="0.8" step="0.05" value="${s.intensity}" data-pref="intensity" />
+        <span class="vela-sepia-value"></span>
+      </label>
+      <label class="vela-sepia-row">
+        <span>Font size</span>
+        <input type="range" min="0.9" max="1.4" step="0.05" value="${s.fontScale}" data-pref="font-scale" />
+        <span class="vela-sepia-value"></span>
+      </label>
+      <label class="vela-sepia-row">
+        <span>Line height</span>
+        <input type="range" min="1.3" max="2.0" step="0.05" value="${s.lineHeight}" data-pref="line-height" />
+        <span class="vela-sepia-value"></span>
+      </label>
+      <label class="vela-sepia-row vela-sepia-toggle-row">
+        <input type="checkbox" ${s.warmBg ? "checked" : ""} data-pref="warm-bg" />
+        <span>Warm background</span>
+      </label>
+      <label class="vela-sepia-row vela-sepia-toggle-row">
+        <input type="checkbox" ${s.warmLinks ? "checked" : ""} data-pref="warm-links" />
+        <span>Warm link colours</span>
+      </label>
+    `;
+
+    // Wire up controls.
+    panel.querySelector(".vela-sepia-close").addEventListener("click", () => {
+      this.toggleSepiaReader();
+    });
+    for (const input of panel.querySelectorAll("input")) {
+      input.addEventListener("input", () => {
+        const pref = input.dataset.pref;
+        const prefName = "vela.sepia-reader." + pref;
+        let val = input.type === "checkbox" ? input.checked : parseFloat(input.value);
+        if (pref === "intensity" || pref === "font-scale" || pref === "line-height") {
+          Services.prefs.setFloatPref(prefName, val);
+        } else {
+          Services.prefs.setBoolPref(prefName, val);
+        }
+        this._pushSepiaSettings();
+        this._updateSepiaPanelValues();
+      });
+    }
+    this._updateSepiaPanelValues();
+    return panel;
+  },
+
+  _updateSepiaPanelValues() {
+    const panel = document.getElementById("vela-sepia-panel");
+    if (!panel) return;
+    const s = this._sepiaSettings();
+    panel.querySelectorAll('input[type="range"]').forEach(input => {
+      const pref = input.dataset.pref;
+      const val = pref === "intensity" ? s.intensity
+                : pref === "font-scale" ? s.fontScale
+                : pref === "line-height" ? s.lineHeight
+                : 0;
+      const display = input.parentElement.querySelector(".vela-sepia-value");
+      if (display) display.textContent = val.toFixed(2);
+    });
   },
 
   /* ----- about:vela --------------------------------------------------- */
@@ -235,6 +366,174 @@ var VelaBrowser = {
   openAboutVela() {
     if (!gBrowser) return;
     gBrowser.selectedTab = gBrowser.addTab("about:vela");
+  },
+
+  /* ----- Reading List ------------------------------------------------- */
+
+  /**
+   * Adds the current page to the Vela Reading List.
+   * Loaded lazily so the vela-readinglist.js module is only pulled in
+   * when the feature is first used.
+   */
+  addToReadingList(url, title) {
+    if (!this._readingListLoaded) {
+      Services.scriptloader.loadSubScript(
+        "chrome://browser/content/vela/vela-readinglist.js", this
+      );
+      if (typeof VelaReadingList !== "undefined") {
+        this.VelaReadingList = VelaReadingList;
+      }
+      this._readingListLoaded = true;
+    }
+    const RL = this.VelaReadingList;
+    if (!RL) {
+      console.warn("Vela: reading-list module not available");
+      return;
+    }
+    // Default to current tab.
+    if (!url) {
+      const tab = gBrowser?.selectedTab;
+      const browser = tab && gBrowser.getBrowserForTab(tab);
+      if (!browser) return;
+      url = browser.currentURI?.spec;
+      title = browser.contentTitle || tab.label || url;
+    }
+    if (!url) return;
+    RL.add(url, title || url);
+    // Brief confirmation.
+    try {
+      const notifications = document.getElementById("global-notificationbox");
+      if (notifications) {
+        notifications.appendNotification(
+          "vela-readinglist-added",
+          { label: `Added to Reading List: ${title || url}`,
+            priority: notifications.PRIORITY_INFO_LOW,
+            eventCallback: () => {},
+          },
+          [/* no buttons */]
+        );
+        // Auto-dismiss after 2.5s.
+        setTimeout(() => {
+          const n = notifications.getNotificationWithValue("vela-readinglist-added");
+          if (n) notifications.removeNotification(n);
+        }, 2500);
+      }
+    } catch (e) {
+      console.debug("Vela: could not show reading-list notification", e);
+    }
+  },
+
+  /* ----- Workspaces --------------------------------------------------- */
+
+  /**
+   * Workspaces — saved, named collections of tabs the user can switch
+   * between (e.g. "Work", "Personal", "Research project").
+   *
+   * The data layer is in vela-workspaces.js (loaded below as a
+   * subscript). This method opens a small chrome dialog that lets the
+   * user create, switch to, rename and delete workspaces.
+   *
+   * For v1, the dialog is a simple prompt-based flow:
+   *   - No active workspace: prompt for a name, create + switch.
+   *   - Active workspace: show a menu of all workspaces + "New…" +
+   *     "Save current into <active>" + "Delete <active>".
+   *
+   * A future v2 will replace the prompts with a proper Vela-styled panel.
+   */
+  openWorkspaces() {
+    if (!gBrowser) return;
+    // Lazy-load the module.
+    if (!this._workspacesLoaded) {
+      Services.scriptloader.loadSubScript(
+        "chrome://browser/content/vela/vela-workspaces.js", this
+      );
+      // Re-attach to this scope.
+      if (typeof VelaWorkspaces !== "undefined") {
+        this.VelaWorkspaces = VelaWorkspaces;
+      } else if (this.VelaWorkspaces) {
+        // already attached
+      }
+      this._workspacesLoaded = true;
+    }
+    const WS = this.VelaWorkspaces;
+    if (!WS) {
+      console.warn("Vela: workspaces module not available");
+      return;
+    }
+
+    const active = WS.active();
+    const list = WS.all();
+
+    // Build a prompt string.
+    let promptText;
+    if (active) {
+      const lines = [
+        `Active workspace: ${active.name} (${active.tabs.length} tabs)`,
+        "",
+        "Workspaces:",
+        ...list.map(w => `  ${w.id === active.id ? "* " : "  "}${w.name} (${w.tabs.length} tabs)`),
+        "",
+        "Type a workspace name to switch to it,",
+        "or 'new <name>' to create one,",
+        "or 'save' to update the active workspace,",
+        "or 'delete' to remove the active workspace.",
+      ];
+      promptText = lines.join("\n");
+    } else {
+      const lines = [
+        "No active workspace.",
+        "",
+        list.length ? "Workspaces:" : "No saved workspaces yet.",
+        ...list.map(w => `  ${w.name} (${w.tabs.length} tabs)`),
+        "",
+        "Type 'new <name>' to create a workspace from the current tabs,",
+        "or type a workspace name to switch to it.",
+      ];
+      promptText = lines.join("\n");
+    }
+
+    const inputObj = { value: "" };
+    const ok = Services.prompt.prompt(
+      window,
+      "Vela Workspaces",
+      promptText,
+      inputObj,
+      null,
+      {}
+    );
+    if (!ok) return;
+    const trimmed = (inputObj.value || "").trim();
+    if (!trimmed) return;
+
+    if (trimmed.toLowerCase() === "save" && active) {
+      WS.saveCurrent(active.id);
+      Services.prompt.alert(window, "Vela Workspaces",
+        `Saved ${WS._captureTabs().length} tabs into "${active.name}".`);
+      return;
+    }
+    if (trimmed.toLowerCase() === "delete" && active) {
+      const ok = Services.prompt.confirm(window, "Vela Workspaces",
+        `Delete workspace "${active.name}"?`);
+      if (ok) WS.remove(active.id);
+      return;
+    }
+    if (trimmed.toLowerCase().startsWith("new ")) {
+      const name = trimmed.slice(4).trim();
+      if (!name) return;
+      const ws = WS.create(name);
+      Services.prefs.setStringPref(WS.PREF_ACTIVE, ws.id);
+      Services.prompt.alert(window, "Vela Workspaces",
+        `Created workspace "${name}" with ${ws.tabs.length} tabs.`);
+      return;
+    }
+    // Otherwise, treat as a workspace name to switch to.
+    const target = list.find(w => w.name.toLowerCase() === trimmed.toLowerCase());
+    if (target) {
+      WS.switchTo(target.id);
+    } else {
+      Services.prompt.alert(window, "Vela Workspaces",
+        `No workspace named "${trimmed}".`);
+    }
   },
 
   /* ----- Init --------------------------------------------------------- */

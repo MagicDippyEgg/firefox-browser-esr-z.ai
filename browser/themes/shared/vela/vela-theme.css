@@ -560,6 +560,145 @@
 }
 
 /* ------------------------------------------------------------------ *
+ * Sepia Reader — floating control panel
+ * ------------------------------------------------------------------ */
+#vela-sepia-panel {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9998;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  min-width: 240px;
+  background-color: var(--vela-surface-card);
+  color: var(--vela-text);
+  border: 1px solid var(--vela-divider);
+  border-radius: var(--vela-radius-lg);
+  box-shadow: var(--vela-shadow-3);
+  font-size: 12px;
+  user-select: none;
+}
+
+#vela-sepia-panel:not([hidden]) {
+  display: flex;
+}
+
+#vela-sepia-panel .vela-sepia-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+#vela-sepia-panel .vela-sepia-title {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vela-accent);
+}
+
+#vela-sepia-panel .vela-sepia-close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--vela-text-soft);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--vela-radius-sm);
+  transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+}
+
+#vela-sepia-panel .vela-sepia-close:hover {
+  background-color: var(--vela-accent-tint);
+  color: var(--vela-accent);
+}
+
+#vela-sepia-panel .vela-sepia-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--vela-text-soft);
+}
+
+#vela-sepia-panel .vela-sepia-row > span:first-child {
+  color: var(--vela-text);
+}
+
+#vela-sepia-panel .vela-sepia-row input[type="range"] {
+  width: 100%;
+  appearance: none;
+  background: transparent;
+}
+
+#vela-sepia-panel .vela-sepia-row input[type="range"]::-webkit-slider-runnable-track,
+#vela-sepia-panel .vela-sepia-row input[type="range"]::-moz-range-track {
+  height: 3px;
+  background-color: var(--vela-divider);
+  border-radius: 2px;
+}
+
+#vela-sepia-panel .vela-sepia-row input[type="range"]::-webkit-slider-thumb,
+#vela-sepia-panel .vela-sepia-row input[type="range"]::-moz-range-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--vela-accent);
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+#vela-sepia-panel .vela-sepia-value {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  color: var(--vela-text-soft);
+  text-align: right;
+}
+
+#vela-sepia-panel .vela-sepia-toggle-row {
+  grid-template-columns: 16px 1fr;
+  cursor: pointer;
+}
+
+#vela-sepia-panel .vela-sepia-toggle-row input[type="checkbox"] {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--vela-mist);
+  border-radius: 3px;
+  background-color: var(--vela-surface-soft);
+  cursor: pointer;
+  position: relative;
+  transition: background-color var(--vela-duration-fast) var(--vela-ease-out),
+              border-color var(--vela-duration-fast) var(--vela-ease-out);
+}
+
+#vela-sepia-panel .vela-sepia-toggle-row input[type="checkbox"]:checked {
+  background-color: var(--vela-accent);
+  border-color: var(--vela-accent);
+}
+
+#vela-sepia-panel .vela-sepia-toggle-row input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: solid #FFFFFF;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+/* ------------------------------------------------------------------ *
  * Tab groups (Tides) — soft colour tints
  * ------------------------------------------------------------------ */
 .tab-group-label-container,

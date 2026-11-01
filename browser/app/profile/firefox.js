@@ -3646,6 +3646,14 @@ pref("vela.focusmode.active", false);
 // Sepia Reader — a warm sepia tint applied to the active page (Ctrl+Alt+R).
 // Configurable intensity, 0.0–1.0. Default 0.30 is "calm sepia, not antique".
 pref("vela.sepia-reader.intensity", 0.30);
+// Sepia Reader — body font scale (1.0 = page default, 1.05 = slightly larger).
+pref("vela.sepia-reader.font-scale", 1.05);
+// Sepia Reader — body line height (1.65 = relaxed).
+pref("vela.sepia-reader.line-height", 1.65);
+// Sepia Reader — apply a warm parchment background colour.
+pref("vela.sepia-reader.warm-bg", true);
+// Sepia Reader — recolour links in warm terracotta.
+pref("vela.sepia-reader.warm-links", true);
 
 // Tides — collapsible tab groups (Ctrl+Shift+G).
 // Default colour for new tides. One of: gray, blue, cyan, green, orange,
@@ -3659,6 +3667,21 @@ pref("vela.tides.collapse-by-default", false);
 // Harbor — unified sidebar (Ctrl+Alt+H).
 // Default view: "bookmarks", "history", or "downloads".
 pref("vela.harbor.default-view", "bookmarks");
+
+// Vela Reading List — pref-backed flat list of pages to read later.
+// Stored as JSON in velareadinglist.items. Capped at 500 items.
+pref("vela.readinglist.items", "[]");
+
+// Vela Quick Notes — pref-backed scratchpad shown in the Harbor Notes tab.
+// Stored as a plain string in velanotes.text. Capped at 64 KB.
+pref("vela.notes.text", "");
+
+// Vela Workspaces — saved, named collections of tabs the user can switch
+// between (e.g. "Work", "Personal", "Research project").
+// Stored as JSON in velaworkspaces.list. Capped at 50 workspaces, 200 tabs each.
+pref("vela.workspaces.list", "[]");
+// The currently-active workspace id (empty string = none).
+pref("vela.workspaces.active", "");
 
 // Visual identity: which new tab background style to render. One of:
 //   "harbour-dawn" — warm radial glow at the top (default).

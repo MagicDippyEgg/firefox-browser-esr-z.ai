@@ -20,18 +20,18 @@ const VelaReadingList = {
 
   _get() {
     try {
-      const raw = Services.prefs.getCharPref(this.PREF, "[]");
+      const raw = Services.prefs.getStringPref(this.PREF, "[]");
       const arr = JSON.parse(raw);
       return Array.isArray(arr) ? arr : [];
     } catch (e) {
       console.warn("VelaReadingList: parse failed, resetting", e);
-      Services.prefs.setCharPref(this.PREF, "[]");
+      Services.prefs.setStringPref(this.PREF, "[]");
       return [];
     }
   },
 
   _set(arr) {
-    Services.prefs.setCharPref(this.PREF, JSON.stringify(arr));
+    Services.prefs.setStringPref(this.PREF, JSON.stringify(arr));
   },
 
   all() {
