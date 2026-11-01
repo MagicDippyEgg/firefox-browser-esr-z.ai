@@ -5,7 +5,8 @@
   file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
   about:vela — the Vela browser's home page. A calm welcome screen with
-  the wordmark, tagline, version info, and a few helpful shortcuts.
+  the wordmark, tagline, version info, shortcut tiles, a feature tour,
+  and a settings panel for all Vela features.
 -->
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -23,7 +24,7 @@
       html, body {
         margin: 0;
         padding: 0;
-        height: 100%;
+        min-height: 100%;
         background-color: var(--vela-cream, #F7F2E8);
         color: var(--vela-ink, #1F1B16);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -33,10 +34,11 @@
       }
       body {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
+        padding: 48px 24px 64px;
         background-image:
-          radial-gradient(ellipse at 50% -20%,
+          radial-gradient(ellipse at 50% -10%,
             color-mix(in srgb, var(--vela-terracotta-soft, #E07856) 22%, transparent) 0%,
             transparent 55%);
         background-attachment: fixed;
@@ -54,8 +56,8 @@
                     0 2px 6px rgba(31, 27, 22, 0.06);
         border: 1px solid color-mix(in srgb, var(--vela-ink, #1F1B16) 6%, transparent);
         padding: 56px 64px 48px;
-        max-width: 560px;
-        width: calc(100% - 48px);
+        max-width: 720px;
+        width: 100%;
         text-align: center;
         position: relative;
       }
@@ -97,9 +99,12 @@
       }
       .vela-shortcuts {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 10px;
         margin-top: 8px;
+      }
+      @media (max-width: 600px) {
+        .vela-shortcuts { grid-template-columns: repeat(2, 1fr); }
       }
       .vela-shortcut {
         display: block;
@@ -154,7 +159,7 @@
         padding: 0;
       }
       .vela-features li {
-        padding: 6px 0;
+        padding: 8px 0;
         font-size: 13px;
         line-height: 1.5;
         color: var(--vela-ink-soft, #4A4238);
@@ -167,6 +172,88 @@
       .vela-features li strong {
         color: var(--vela-terracotta, #C8553D);
         font-weight: 600;
+      }
+      /* Settings panel */
+      .vela-settings {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid color-mix(in srgb, var(--vela-ink, #1F1B16) 8%, transparent);
+        text-align: left;
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-settings {
+          border-top-color: rgba(232, 220, 196, 0.10);
+        }
+      }
+      .vela-settings h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: color-mix(in srgb, var(--vela-ink, #1F1B16) 55%, transparent);
+        margin: 0 0 16px;
+        font-weight: 600;
+      }
+      .vela-setting {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid color-mix(in srgb, var(--vela-ink, #1F1B16) 4%, transparent);
+      }
+      .vela-setting:last-child {
+        border-bottom: none;
+      }
+      .vela-setting-label {
+        flex: 1;
+        font-size: 13px;
+        color: var(--vela-ink, #1F1B16);
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-setting-label {
+          color: var(--vela-cream-dark, #E8DCC4);
+        }
+      }
+      .vela-setting-desc {
+        display: block;
+        font-size: 11px;
+        color: var(--vela-ink-soft, #4A4238);
+        margin-top: 2px;
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-setting-desc {
+          color: var(--vela-cream-dark-soft, #B8AFA1);
+        }
+      }
+      /* Toggle switch (custom-styled checkbox) */
+      .vela-toggle {
+        appearance: none;
+        width: 36px;
+        height: 20px;
+        border-radius: 999px;
+        background-color: var(--vela-mist, #B8AFA1);
+        position: relative;
+        cursor: pointer;
+        transition: background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+        flex-shrink: 0;
+      }
+      .vela-toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #FFFFFF;
+        transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+      .vela-toggle:checked {
+        background-color: var(--vela-terracotta, #C8553D);
+      }
+      .vela-toggle:checked::after {
+        transform: translateX(16px);
       }
       .vela-footer {
         margin-top: 28px;
@@ -189,17 +276,85 @@
         <a class="vela-shortcut" href="about:preferences">Settings<span class="kbd">Ctrl+,</span></a>
         <a class="vela-shortcut" href="about:downloads">Downloads<span class="kbd">Ctrl+J</span></a>
         <a class="vela-shortcut" href="about:home">New Tab<span class="kbd">Ctrl+T</span></a>
-        <a class="vela-shortcut" href="about:privatebrowsing">Private Window<span class="kbd">Ctrl+Shift+P</span></a>
+        <a class="vela-shortcut" href="about:privatebrowsing">Private<span class="kbd">Ctrl+Shift+P</span></a>
       </nav>
 
       <section class="vela-features">
         <h2>Original features</h2>
         <ul>
           <li><strong>Focus Mode</strong> — hide all chrome, leave only the page. <em>Ctrl+Shift+F</em></li>
-          <li><strong>Harbor</strong> — a unified sidebar for bookmarks, history and downloads. <em>Ctrl+Alt+H</em></li>
+          <li><strong>Harbor</strong> — a unified sidebar for bookmarks, history, downloads, reading list and notes. <em>Ctrl+Alt+H</em></li>
           <li><strong>Tides</strong> — collapsible tab groups to keep the tab strip calm. <em>Ctrl+Shift+G</em></li>
-          <li><strong>Sepia Reader</strong> — a warm sepia tint for long reads, no transform. <em>Ctrl+Alt+R</em></li>
+          <li><strong>Sepia Reader</strong> — a warm sepia tint with adjustable typography for long reads. <em>Ctrl+Alt+R</em></li>
+          <li><strong>Workspaces</strong> — saved, named collections of tabs you can switch between. <em>Ctrl+Alt+W</em></li>
+          <li><strong>Reading List</strong> — a flat, lightweight list of pages to read later. <em>Ctrl+Alt+Shift+L</em></li>
         </ul>
+      </section>
+
+      <section class="vela-settings">
+        <h2>Feature settings</h2>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Focus Mode
+            <span class="vela-setting-desc">Hide every piece of browser chrome except the active page.</span>
+          </span>
+          <input class="vela-toggle" type="checkbox" data-pref="vela.feature.focus-mode.enabled" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Harbor sidebar
+            <span class="vela-setting-desc">Unified sidebar with bookmarks, history, downloads, reading list and notes.</span>
+          </span>
+          <input class="vela-toggle" type="checkbox" data-pref="vela.feature.harbor.enabled" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Tides (tab groups)
+            <span class="vela-setting-desc">Collapsible tab groups to keep the tab strip calm.</span>
+          </span>
+          <input class="vela-toggle" type="checkbox" data-pref="vela.feature.tides.enabled" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Sepia Reader
+            <span class="vela-setting-desc">Warm sepia tint with adjustable typography for long reads.</span>
+          </span>
+          <input class="vela-toggle" type="checkbox" data-pref="vela.feature.sepia-reader.enabled" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Calm New Tab widgets
+            <span class="vela-setting-desc">Show the clock, reading list and recent bookmarks widgets on the new tab page.</span>
+          </span>
+          <input class="vela-toggle" type="checkbox" data-pref="vela.feature.newtab-widgets.enabled" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Sepia Reader — Warmth
+            <span class="vela-setting-desc">0.0–0.8. Default 0.30 (calm sepia, not antique).</span>
+          </span>
+          <input type="range" min="0" max="0.8" step="0.05"
+                 data-pref="vela.sepia-reader.intensity"
+                 style="width: 140px; accent-color: var(--vela-terracotta, #C8553D);" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Sepia Reader — Font size
+            <span class="vela-setting-desc">0.9–1.4× the page's default size.</span>
+          </span>
+          <input type="range" min="0.9" max="1.4" step="0.05"
+                 data-pref="vela.sepia-reader.font-scale"
+                 style="width: 140px; accent-color: var(--vela-terracotta, #C8553D);" />
+        </label>
+        <label class="vela-setting">
+          <span class="vela-setting-label">
+            Sepia Reader — Line height
+            <span class="vela-setting-desc">1.3–2.0. Default 1.65 (relaxed).</span>
+          </span>
+          <input type="range" min="1.3" max="2.0" step="0.05"
+                 data-pref="vela.sepia-reader.line-height"
+                 style="width: 140px; accent-color: var(--vela-terracotta, #C8553D);" />
+        </label>
       </section>
 
       <p class="vela-footer">A calm browser, crafted from the Mozilla Firefox ESR engine.</p>
