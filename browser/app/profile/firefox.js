@@ -3688,6 +3688,19 @@ pref("vela.workspaces.active", "");
 //   "plain"        — flat parchment, no glow.
 pref("vela.newtab.background-style", "harbour-dawn");
 
+// Vela Calm Scroll — smooths scrolling on all pages for a calmer
+// reading experience. Implemented via the general.smoothScroll prefs
+// that Firefox already supports; Vela just tunes them to be calmer.
+pref("general.smoothScroll", true);
+pref("general.smoothScroll.lines.durationMaxMS", 350);
+pref("general.smoothScroll.lines.durationMinMS", 200);
+pref("general.smoothScroll.pages.durationMaxMS", 500);
+pref("general.smoothScroll.pages.durationMinMS", 300);
+pref("general.smoothScroll.mouseWheel.durationMaxMS", 350);
+pref("general.smoothScroll.mouseWheel.durationMinMS", 200);
+pref("general.smoothScroll.scrollbars.durationMaxMS", 300);
+pref("general.smoothScroll.scrollbars.durationMinMS", 150);
+
 // Feature toggles — let users disable any Vela feature without affecting
 // the rest of the browser.
 pref("vela.feature.focus-mode.enabled", true);

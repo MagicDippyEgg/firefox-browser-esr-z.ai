@@ -43,6 +43,16 @@ export RUSTC_OPT_LEVEL=2
 
 # Strip what we don't ship.
 ac_add_options --disable-tests
+# Disable the Breakpad crash reporter — it requires linux_syscall_support.h
+# which is fetched by `./mach bootstrap` as a git submodule but is flaky on
+# CI. Vela doesn't send crash reports to Mozilla, so we lose nothing by
+# disabling it.
+ac_add_options --disable-crashreporter
+# Disable the software updater — Vela is distributed via GitHub releases,
+# not Mozilla's update servers.
+ac_add_options --disable-updater
+# Disable geckodriver — we don't ship WebDriver in the browser artifact.
+ac_add_options --disable-geckodriver
 
 # Compilation cache.
 ac_add_options --with-ccache=sccache
