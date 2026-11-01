@@ -61,6 +61,7 @@
   skin/classic/browser/webRTC-menubar-indicator.css            (../shared/webRTC-menubar-indicator.css)
   skin/classic/browser/vela/vela-theme.css                     (../shared/vela/vela-theme.css)
   skin/classic/browser/vela/calm-newtab.css                    (../shared/vela/calm-newtab.css)
+  skin/classic/browser/vela/calm-newtab-widgets.js             (../shared/vela/calm-newtab-widgets.js)
   skin/classic/browser/vela/harbor.css                         (../shared/vela/harbor.css)
   skin/classic/browser/vela/harbor.svg                         (../shared/vela/harbor.svg)
   skin/classic/browser/addons/addon-install-blocked.svg        (../shared/addons/addon-install-blocked.svg)

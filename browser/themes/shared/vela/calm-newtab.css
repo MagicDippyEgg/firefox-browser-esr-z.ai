@@ -458,3 +458,178 @@ button.primary:hover,
   background-color: var(--vela-terracotta-tint);
   color: var(--vela-ink);
 }
+
+/* ------------------------------------------------------------------ *
+ * Vela new tab widgets — original calm dashboard widgets injected
+ * above the React content.
+ * ------------------------------------------------------------------ */
+.vela-newtab-widgets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 32px 24px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .vela-newtab-widgets {
+    grid-template-columns: 1fr;
+    padding: 32px 20px 16px;
+  }
+}
+
+.vela-widget {
+  background-color: var(--vela-paper);
+  border-radius: var(--vela-radius-lg);
+  border: 1px solid color-mix(in srgb, var(--vela-ink) 6%, transparent);
+  box-shadow: var(--vela-shadow-1);
+  padding: 18px 20px;
+  transition: box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-widget {
+    background-color: var(--vela-night-card);
+    border-color: rgba(232, 220, 196, 0.08);
+  }
+}
+
+.vela-widget:hover {
+  box-shadow: var(--vela-shadow-2);
+  transform: translateY(-1px);
+}
+
+/* Clock widget — large calm time + date. */
+.vela-widget-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 96px;
+}
+
+.vela-clock-time {
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--vela-ink);
+  line-height: 1.1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-clock-time {
+    color: var(--vela-cream-dark);
+  }
+}
+
+.vela-clock-date {
+  font-size: 13px;
+  color: var(--vela-ink-soft);
+  margin-top: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-clock-date {
+    color: var(--vela-cream-dark-soft);
+  }
+}
+
+/* Reading list + bookmarks widgets — shared layout. */
+.vela-widget-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--vela-terracotta);
+  margin-bottom: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-widget-label {
+    color: var(--vela-terracotta-soft);
+  }
+}
+
+.vela-widget-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.vela-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--vela-ink);
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-list-item {
+    color: var(--vela-cream-dark);
+  }
+}
+
+.vela-list-item:hover {
+  background-color: var(--vela-terracotta-tint);
+}
+
+.vela-list-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.vela-list-meta {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--vela-ink-soft);
+  opacity: 0.7;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-list-meta {
+    color: var(--vela-cream-dark-soft);
+  }
+}
+
+.vela-empty-hint {
+  font-size: 12px;
+  color: var(--vela-ink-soft);
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-empty-hint {
+    color: var(--vela-cream-dark-soft);
+  }
+}
+
+.vela-empty-hint kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--vela-divider);
+  border-radius: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  background-color: var(--vela-paper);
+}
+
+@media (prefers-color-scheme: dark) {
+  .vela-empty-hint kbd {
+    background-color: var(--vela-night-soft);
+    border-color: rgba(232, 220, 196, 0.10);
+  }
+}

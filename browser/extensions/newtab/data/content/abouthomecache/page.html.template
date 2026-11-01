@@ -61,5 +61,7 @@
     <script async type="module" src="chrome://global/content/elements/panel-list.js"></script>
     <script async type="module" src="chrome://global/content/elements/moz-support-link.mjs"></script>
     <script async type="module" src="chrome://global/content/elements/moz-checkbox.mjs"></script>
+    <!-- Vela — Calm New Tab widgets (clock, reading list, recent bookmarks). -->
+    <script src="chrome://browser/skin/vela/calm-newtab-widgets.js"></script>
   </body>
 </html>
