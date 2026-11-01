@@ -1,0 +1,391 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/*
+ * Vela Harbor — sidebar styling.
+ *
+ * Loaded inside the sidebar <browser>. The Vela theme provides the
+ * palette via custom properties; this stylesheet composes the panel.
+ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: var(--vela-surface-soft, #FDFAF3);
+  color: var(--vela-text, #1F1B16);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Helvetica Neue", Helvetica, Arial,
+               "Noto Sans", "Noto Sans CJK SC", sans-serif;
+  font-size: 13px;
+  -moz-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: var(--vela-night-soft, #1F1B16);
+    color: var(--vela-cream-dark, #E8DCC4);
+  }
+}
+
+#harbor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tab strip
+ * ------------------------------------------------------------------ */
+#harbor-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 8px 0;
+  background-color: var(--vela-surface, #F7F2E8);
+  border-bottom: 1px solid var(--vela-divider, rgba(31, 27, 22, 0.10));
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  #harbor-tabs {
+    background-color: var(--vela-night, #14110D);
+    border-bottom-color: rgba(232, 220, 196, 0.10);
+  }
+}
+
+.harbor-tab {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--vela-text-soft, #4A4238);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 4px 10px;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+@media (prefers-color-scheme: dark) {
+  .harbor-tab {
+    color: var(--vela-cream-dark-soft, #B8AFA1);
+  }
+}
+
+.harbor-tab:hover {
+  background-color: var(--vela-accent-tint, rgba(200, 85, 61, 0.12));
+  color: var(--vela-text, #1F1B16);
+}
+
+@media (prefers-color-scheme: dark) {
+  .harbor-tab:hover {
+    color: var(--vela-cream-dark, #E8DCC4);
+  }
+}
+
+.harbor-tab[aria-selected="true"] {
+  color: var(--vela-accent, #C8553D);
+}
+
+.harbor-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(to right,
+    transparent,
+    var(--vela-accent, #C8553D) 30%,
+    var(--vela-accent, #C8553D) 70%,
+    transparent);
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Search row
+ * ------------------------------------------------------------------ */
+#harbor-search-row {
+  padding: 8px 10px;
+  background-color: var(--vela-surface, #F7F2E8);
+  border-bottom: 1px solid var(--vela-divider, rgba(31, 27, 22, 0.10));
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  #harbor-search-row {
+    background-color: var(--vela-night, #14110D);
+    border-bottom-color: rgba(232, 220, 196, 0.10);
+  }
+}
+
+#harbor-search {
+  width: 100%;
+  box-sizing: border-box;
+  appearance: none;
+  border: 1px solid transparent;
+  background-color: var(--vela-surface-soft, #FDFAF3);
+  color: var(--vela-text, #1F1B16);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#harbor-search:focus {
+  outline: none;
+  border-color: var(--vela-accent, #C8553D);
+  box-shadow: 0 0 0 3px var(--vela-accent-tint, rgba(200, 85, 61, 0.12));
+}
+
+@media (prefers-color-scheme: dark) {
+  #harbor-search {
+    background-color: var(--vela-night-soft, #1F1B16);
+    color: var(--vela-cream-dark, #E8DCC4);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Panels (scrollable list area)
+ * ------------------------------------------------------------------ */
+#harbor-panels {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.harbor-panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 6px 6px 16px;
+  box-sizing: border-box;
+}
+
+.harbor-panel[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * List items
+ * ------------------------------------------------------------------ */
+.harbor-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.harbor-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--vela-text, #1F1B16);
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .harbor-item {
+    color: var(--vela-cream-dark, #E8DCC4);
+  }
+}
+
+.harbor-item:hover {
+  background-color: var(--vela-accent-tint, rgba(200, 85, 61, 0.12));
+}
+
+.harbor-item img.favicon,
+.harbor-item .favicon-placeholder {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background-color: var(--vela-sand, #E8DCC4);
+}
+
+.harbor-item .favicon-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--vela-ink-soft, #4A4238);
+  text-transform: uppercase;
+}
+
+.harbor-item .label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.harbor-item .meta {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--vela-text-soft, #4A4238);
+  opacity: 0.7;
+}
+
+@media (prefers-color-scheme: dark) {
+  .harbor-item .meta {
+    color: var(--vela-cream-dark-soft, #B8AFA1);
+  }
+}
+
+.harbor-item .remove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--vela-text-soft, #4A4238);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.harbor-item:hover .remove {
+  opacity: 1;
+}
+
+.harbor-item .remove:hover {
+  background-color: var(--vela-accent-tint, rgba(200, 85, 61, 0.18));
+  color: var(--vela-accent, #C8553D);
+}
+
+/* Folder items */
+.harbor-item.folder {
+  font-weight: 600;
+}
+
+.harbor-item.folder .favicon-placeholder {
+  background-color: var(--vela-secondary-tint, rgba(45, 95, 93, 0.16));
+  color: var(--vela-secondary, #2D5F5D);
+}
+
+/* Section headings inside lists (e.g. "Today", "Yesterday") */
+.harbor-section-heading {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--vela-text-soft, #4A4238);
+  padding: 12px 8px 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .harbor-section-heading {
+    color: var(--vela-cream-dark-soft, #B8AFA1);
+  }
+}
+
+/* Empty state */
+.harbor-empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--vela-text-soft, #4A4238);
+}
+
+@media (prefers-color-scheme: dark) {
+  .harbor-empty {
+    color: var(--vela-cream-dark-soft, #B8AFA1);
+  }
+}
+
+.harbor-empty kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border: 1px solid var(--vela-divider, rgba(31, 27, 22, 0.10));
+  border-radius: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  background-color: var(--vela-surface, #F7F2E8);
+}
+
+/* ------------------------------------------------------------------ *
+ * Notes panel
+ * ------------------------------------------------------------------ */
+.harbor-panel[data-panel="notes"] {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+#harbor-notes-editor {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 12px 14px;
+  background-color: var(--vela-surface-soft, #FDFAF3);
+  color: var(--vela-text, #1F1B16);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  font-family: ui-monospace, "SF Mono", Menlo, "Cascadia Mono", Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  #harbor-notes-editor {
+    background-color: var(--vela-night-soft, #1F1B16);
+    color: var(--vela-cream-dark, #E8DCC4);
+  }
+}
+
+#harbor-notes-editor::placeholder {
+  color: var(--vela-text-soft, #4A4238);
+  font-style: italic;
+}
+
+.harbor-notes-status {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-top: 1px solid var(--vela-divider, rgba(31, 27, 22, 0.10));
+  font-size: 10px;
+  color: var(--vela-text-soft, #4A4238);
+  text-align: right;
+  background-color: var(--vela-surface, #F7F2E8);
+}
+
+@media (prefers-color-scheme: dark) {
+  #harbor-notes-status,
+  .harbor-notes-status {
+    background-color: var(--vela-night, #14110D);
+    color: var(--vela-cream-dark-soft, #B8AFA1);
+    border-top-color: rgba(232, 220, 196, 0.10);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Scrollbars
+ * ------------------------------------------------------------------ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vela-mist, #B8AFA1) transparent;
+}
+
+::selection {
+  background-color: var(--vela-accent-tint, rgba(200, 85, 61, 0.18));
+  color: var(--vela-text, #1F1B16);
+}

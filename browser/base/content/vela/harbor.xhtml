@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!--
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+  Vela Harbor — the unified sidebar.
+
+  A single chrome-privileged panel with five tabs:
+    1. Bookmarks   — powered by Places
+    2. History     — powered by Places
+    3. Downloads   — powered by DownloadsCommon
+    4. Reading List — Vela's own lightweight reading list (stored in prefs)
+    5. Notes       — Vela's own quick-notes scratchpad (stored in prefs)
+
+  The panel is loaded into the existing sidebar <browser> by
+  SidebarController, registered as the "viewVelaHarborSidebar" panel
+  in browser/components/sidebar/browser-sidebar.js.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      windowtype="Vela:Harbor">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Harbor</title>
+    <link rel="stylesheet" href="chrome://browser/skin/vela/vela-theme.css" />
+    <link rel="stylesheet" href="chrome://browser/skin/vela/harbor.css" />
+    <link rel="localization" href="branding/brand.ftl" />
+    <link rel="localization" href="browser/vela.ftl" />
+  </head>
+  <body>
+    <div id="harbor-root">
+      <!-- Tab strip -->
+      <nav id="harbor-tabs" role="tablist">
+        <button class="harbor-tab" role="tab" aria-selected="true"
+                data-tab="bookmarks" data-l10n-id="vela-harbor-bookmarks">
+          Bookmarks
+        </button>
+        <button class="harbor-tab" role="tab" aria-selected="false"
+                data-tab="history" data-l10n-id="vela-harbor-history">
+          History
+        </button>
+        <button class="harbor-tab" role="tab" aria-selected="false"
+                data-tab="downloads" data-l10n-id="vela-harbor-downloads">
+          Downloads
+        </button>
+        <button class="harbor-tab" role="tab" aria-selected="false"
+                data-tab="reading" data-l10n-id="vela-harbor-reading">
+          Reading
+        </button>
+        <button class="harbor-tab" role="tab" aria-selected="false"
+                data-tab="notes" data-l10n-id="vela-harbor-notes">
+          Notes
+        </button>
+      </nav>
+
+      <!-- Search box (filters the active tab's list) -->
+      <div id="harbor-search-row">
+        <input id="harbor-search" type="search"
+               placeholder="Search Harbor…"
+               aria-label="Search Harbor" />
+      </div>
+
+      <!-- Panels -->
+      <main id="harbor-panels">
+        <section class="harbor-panel" role="tabpanel" data-panel="bookmarks">
+          <ul id="harbor-bookmarks-list" class="harbor-list"></ul>
+          <p class="harbor-empty" id="harbor-bookmarks-empty">
+            No bookmarks yet. Press <kbd>Ctrl</kbd>+<kbd>D</kbd> to bookmark the current page.
+          </p>
+        </section>
+
+        <section class="harbor-panel" role="tabpanel" data-panel="history" hidden="hidden">
+          <ul id="harbor-history-list" class="harbor-list"></ul>
+          <p class="harbor-empty" id="harbor-history-empty">
+            No browsing history yet.
+          </p>
+        </section>
+
+        <section class="harbor-panel" role="tabpanel" data-panel="downloads" hidden="hidden">
+          <ul id="harbor-downloads-list" class="harbor-list"></ul>
+          <p class="harbor-empty" id="harbor-downloads-empty">
+            No downloads yet.
+          </p>
+        </section>
+
+        <section class="harbor-panel" role="tabpanel" data-panel="reading" hidden="hidden">
+          <ul id="harbor-reading-list" class="harbor-list"></ul>
+          <p class="harbor-empty" id="harbor-reading-empty">
+            No reading-list items. Open a page and use the Vela menu to add it.
+          </p>
+        </section>
+
+        <section class="harbor-panel" role="tabpanel" data-panel="notes" hidden="hidden">
+          <textarea id="harbor-notes-editor"
+                    placeholder="Jot something down. Notes are saved automatically and stay between sessions."
+                    aria-label="Quick notes"></textarea>
+          <p id="harbor-notes-status" class="harbor-notes-status">Saved.</p>
+        </section>
+      </main>
+    </div>
+
+    <script src="chrome://browser/content/vela/harbor.js"></script>
+  </body>
+</html>

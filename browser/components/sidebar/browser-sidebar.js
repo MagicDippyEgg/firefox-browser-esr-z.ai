@@ -262,6 +262,25 @@ var SidebarController = {
       });
     }
 
+    // Vela — Harbor unified sidebar.
+    this._sidebars.set("viewVelaHarborSidebar", {
+      name: "harbor",
+      elementId: "sidebar-switcher-vela-harbor",
+      url: "chrome://browser/content/vela/harbor.xhtml",
+      menuId: "menu_velaHarborSidebar",
+      keyId: "key_velaHarbor",
+      menuL10nId: "vela-menu-harbor",
+      revampL10nId: "vela-menu-harbor",
+      iconUrl: "chrome://browser/skin/vela/harbor.svg",
+      disabled: false,
+      get title() {
+        return "Harbor";
+      },
+      get sourceL10nEl() {
+        return null;
+      },
+    });
+
     return this._sidebars;
   },
 

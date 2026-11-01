@@ -121,21 +121,29 @@ jobs:
           df -h /
 
       # ---------------------------------------------------------------- *
-      # 2. Add swap.
+      # 2. Add swap (if needed).
       #
-      #    The runner has 16 GB RAM. Firefox's Rust compilation phase
-      #    can briefly exceed that. A 16 GB swap file prevents OOM kills
-      #    without slowing the build noticeably (only used in bursts).
+      #    The ubuntu-22.04 runner ships with ~3 GB of swap and 16 GB RAM.
+      #    Firefox's Rust compilation phase can briefly exceed available
+      #    RAM, so we add a 12 GB swap file as a safety net. We use a
+      #    unique filename (/vela-swap) to avoid colliding with the
+      #    runner's pre-existing /swapfile.
       # ---------------------------------------------------------------- *
-      - name: Add 16 GB swap file
+      - name: Add swap (if needed)
         run: |
           set -eux
-          sudo fallocate -l 16G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          # Show what's already there.
+          free -h || true
+          swapon --show || true
+          # Add our own swap file on top of whatever's already configured.
+          if [ ! -f /vela-swap ]; then
+            sudo fallocate -l 12G /vela-swap || sudo dd if=/dev/zero of=/vela-swap bs=1M count=12288
+            sudo chmod 600 /vela-swap
+            sudo mkswap /vela-swap
+            sudo swapon /vela-swap || true
+          fi
           free -h
-          swapon --show
+          swapon --show || true
 
       # ---------------------------------------------------------------- *
       # 3. Check out the repository.

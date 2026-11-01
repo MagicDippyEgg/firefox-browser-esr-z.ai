@@ -103,38 +103,44 @@ var VelaBrowser = {
   /* ----- Harbor ------------------------------------------------------- */
 
   /**
-   * Harbor is a unified sidebar panel for bookmarks, history and downloads.
-   * It is implemented as a thin wrapper around the existing SidebarUI
-   * infrastructure: when toggled on, it shows a Vela-styled chrome document
-   * that hosts a tabbed view of the three places.
+   * Harbor is Vela's unified sidebar — a single panel with tabs for
+   * bookmarks, history, downloads, reading list and quick notes.
    *
-   * For now, the Harbor command toggles the existing sidebar with the
-   * "viewBookmarksSidebar" view. This gives an immediate, functional
-   * panel that inherits the Vela theme. The full unified Harbor panel
-   * (with tabs) is left as an obvious next iteration.
+   * The panel itself is a chrome-privileged XHTML document at
+   * chrome://browser/content/vela/harbor.xhtml, registered as the
+   * "viewVelaHarborSidebar" sidebar panel in browser-sidebar.js.
+   *
+   * toggleHarbor() shows or hides that panel via SidebarController.
+   * The panel's own JS (harbor.js) handles tab switching and
+   * populating each view from Places, Downloads and the Vela
+   * ReadingList / QuickNotes modules.
    */
   _harborOpen: false,
 
   async toggleHarbor() {
-    if (!window.SidebarUI) {
-      console.warn("Vela: SidebarUI not available");
+    const SidebarController = window.SidebarController;
+    if (!SidebarController) {
+      // Fall back to SidebarUI (older API name).
+      if (window.SidebarUI) {
+        if (this._harborOpen) {
+          await window.SidebarUI.hide();
+          this._harborOpen = false;
+        } else {
+          await window.SidebarUI.show("viewVelaHarborSidebar");
+          this._harborOpen = true;
+        }
+      } else {
+        console.warn("Vela: no sidebar controller available");
+      }
       return;
     }
-    if (this._harborOpen) {
-      await window.SidebarUI.hide();
+    if (this._harborOpen || SidebarController.currentID === "viewVelaHarborSidebar") {
+      await SidebarController.hide();
       this._harborOpen = false;
       return;
     }
-    // Show the bookmarks sidebar as the Harbor's default landing view.
-    // The user can switch to history/downloads from the sidebar header.
-    await window.SidebarUI.show("viewBookmarksSidebar");
+    await SidebarController.show("viewVelaHarborSidebar");
     this._harborOpen = true;
-
-    // Style the sidebar header to feel like Harbor.
-    const header = document.getElementById("sidebar-header");
-    if (header) {
-      header.setAttribute("vela-harbor", "true");
-    }
   },
 
   /* ----- Tides (tab groups) ------------------------------------------ */
