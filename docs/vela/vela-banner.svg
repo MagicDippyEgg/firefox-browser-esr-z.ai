@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<!-- Vela banner — sail logomark + wordmark + tagline. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" role="img" aria-label="Vela">
+  <defs>
+    <linearGradient id="vb-sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FDFAF3"/>
+      <stop offset="1" stop-color="#F1E6D2"/>
+    </linearGradient>
+    <linearGradient id="vb-sail" x1="0" y1="0" x2="1" y2="0.6">
+      <stop offset="0" stop-color="#E07856"/>
+      <stop offset="1" stop-color="#C8553D"/>
+    </linearGradient>
+    <linearGradient id="vb-sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2D5F5D"/>
+      <stop offset="1" stop-color="#1F4444"/>
+    </linearGradient>
+    <radialGradient id="vb-sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFD9A8"/>
+      <stop offset="0.6" stop-color="#F2B980" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#F2B980" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="720" height="240" fill="url(#vb-sky)"/>
+
+  <!-- Sail mark -->
+  <g transform="translate(56 56)">
+    <circle cx="80" cy="48" r="56" fill="url(#vb-sun)"/>
+    <path d="M 60 8 C 60 8 60 8 64 12 C 80 36 96 64 112 96 C 113 100 112 104 106 104 L 60 104 C 54 104 50 100 50 94 L 50 14 C 50 10 54 8 60 8 Z" fill="url(#vb-sail)"/>
+    <rect x="46" y="6" width="6" height="100" rx="3" fill="#3A2C20"/>
+    <path d="M 0 110 Q 60 104 120 110 L 120 128 L 0 128 Z" fill="url(#vb-sea)"/>
+    <path d="M 0 116 Q 60 110 120 116" stroke="#7FB0AC" stroke-width="1.5" fill="none" opacity="0.5"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="220" y="124"
+        font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="80" font-weight="600" letter-spacing="-2"
+        fill="#1F1B16">Vela</text>
+
+  <!-- Tagline -->
+  <text x="222" y="170"
+        font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="22" font-weight="400" font-style="italic"
+        fill="#4A4238">Sail the open web.</text>
+</svg>

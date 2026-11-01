@@ -121,6 +121,21 @@ document.addEventListener(
           case "View:PictureInPicture":
             PictureInPicture.onCommand(event);
             break;
+          case "Vela:FocusMode":
+            VelaBrowser.toggleFocusMode();
+            break;
+          case "Vela:Harbor":
+            VelaBrowser.toggleHarbor();
+            break;
+          case "Vela:NewTide":
+            VelaBrowser.newTide();
+            break;
+          case "Vela:SepiaReader":
+            VelaBrowser.toggleSepiaReader();
+            break;
+          case "Vela:AboutVela":
+            VelaBrowser.openAboutVela();
+            break;
           case "cmd_find":
             gLazyFindCommand("onFindCommand");
             break;

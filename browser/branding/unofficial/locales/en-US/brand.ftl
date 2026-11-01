@@ -2,26 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-## Firefox and Mozilla Brand
-##
-## Firefox and Mozilla must be treated as a brand.
-##
-## They cannot be:
-## - Transliterated.
-## - Translated.
-##
-## Declension should be avoided where possible, leaving the original
-## brand unaltered in prominent UI positions.
-##
-## For further details, consult:
-## https://mozilla-l10n.github.io/styleguides/mozilla_general/#brands-copyright-and-trademark
+## Vela Brand
 
--brand-shorter-name = Nightly
--brand-short-name = Nightly
--brand-shortcut-name = Nightly
--brand-full-name = Nightly
-# This brand name can be used in messages where the product name needs to
-# remain unchanged across different versions (Nightly, Beta, etc.).
--brand-product-name = Firefox
--vendor-short-name = Mozilla
+-brand-shorter-name = Vela
+-brand-short-name = Vela
+-brand-shortcut-name = Vela
+-brand-full-name = Vela
+-brand-product-name = Vela
+-vendor-short-name = Vela Project
 trademarkInfo = { " " }

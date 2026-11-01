@@ -2,26 +2,26 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-## Firefox and Mozilla Brand
+## Vela Brand
 ##
-## Firefox and Mozilla must be treated as a brand.
+## Vela is a constellation named for the sails of a ship. The browser
+## takes its name from the idea of calm navigation across the open web.
 ##
-## They cannot be:
+## "Vela" must be treated as a brand.
+##
+## It cannot be:
 ## - Transliterated.
 ## - Translated.
 ##
 ## Declension should be avoided where possible, leaving the original
 ## brand unaltered in prominent UI positions.
-##
-## For further details, consult:
-## https://mozilla-l10n.github.io/styleguides/mozilla_general/#brands-copyright-and-trademark
 
--brand-shorter-name = Firefox
--brand-short-name = Firefox
--brand-shortcut-name = Firefox
--brand-full-name = Mozilla Firefox
+-brand-shorter-name = Vela
+-brand-short-name = Vela
+-brand-shortcut-name = Vela
+-brand-full-name = Vela Browser
 # This brand name can be used in messages where the product name needs to
-# remain unchanged across different versions (Nightly, Beta, etc.).
--brand-product-name = Firefox
--vendor-short-name = Mozilla
-trademarkInfo = Firefox and the Firefox logos are trademarks of the Mozilla Foundation.
+# remain unchanged across different versions (Beta, etc.).
+-brand-product-name = Vela
+-vendor-short-name = Vela Project
+trademarkInfo = Vela and the Vela logos are trademarks of the Vela Project.

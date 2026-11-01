@@ -1,0 +1,460 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/*
+ * Vela — Calm New Tab.
+ *
+ * This stylesheet is injected into the new tab / about:home page and overrides
+ * the React bundle's default cool-grey look with a warm, calm, parchment-toned
+ * design. The React data layer (top sites, search, highlights, recent
+ * activity) keeps working — only the visual layer changes.
+ *
+ * The design intent: a harbour at dawn — soft warm light, smooth stones
+ * underfoot, a single terracotta sail accent. The page should feel like the
+ * start of a calm voyage, not a dashboard demanding attention.
+ */
+
+:root {
+  /* Vela palette */
+  --vela-cream: #F7F2E8;
+  --vela-paper: #FDFAF3;
+  --vela-sand: #E8DCC4;
+  --vela-sand-soft: #F1E6D2;
+  --vela-mist: #B8AFA1;
+  --vela-ink: #1F1B16;
+  --vela-ink-soft: #4A4238;
+  --vela-terracotta: #C8553D;
+  --vela-terracotta-soft: #E07856;
+  --vela-terracotta-tint: rgba(200, 85, 61, 0.12);
+  --vela-teal: #2D5F5D;
+  --vela-teal-soft: #7FB0AC;
+  --vela-teal-tint: rgba(45, 95, 93, 0.12);
+  --vela-shadow-1: 0 1px 2px rgba(31, 27, 22, 0.06),
+                   0 1px 1px rgba(31, 27, 22, 0.04);
+  --vela-shadow-2: 0 2px 6px rgba(31, 27, 22, 0.08),
+                   0 1px 2px rgba(31, 27, 22, 0.06);
+  --vela-shadow-3: 0 8px 24px rgba(31, 27, 22, 0.10),
+                   0 2px 6px rgba(31, 27, 22, 0.06);
+  --vela-radius: 10px;
+  --vela-radius-lg: 14px;
+  --vela-radius-pill: 999px;
+
+  /* Override Firefox new tab tokens */
+  --newtab-background-color: var(--vela-cream);
+  --newtab-background-color-secondary: var(--vela-paper);
+  --newtab-text-primary-color: var(--vela-ink);
+  --newtab-background-card: var(--vela-paper);
+  --newtab-text-secondary-text: var(--vela-ink-soft);
+  --newtab-text-secondary-color: color-mix(in srgb, var(--vela-ink) 70%, transparent);
+  --newtab-primary-action-background: var(--vela-terracotta);
+  --newtab-primary-element-hover-color: var(--vela-terracotta-soft);
+  --newtab-primary-element-active-color: color-mix(in srgb, var(--vela-terracotta) 80%, #000);
+  --newtab-primary-element-text-color: #FFFFFF;
+  --newtab-primary-action-background-dimmed: var(--vela-terracotta-tint);
+  --newtab-wordmark-color: var(--vela-ink);
+  --newtab-element-hover-color: var(--vela-terracotta-tint);
+  --newtab-element-active-color: color-mix(in srgb, var(--vela-terracotta) 22%, transparent);
+  --newtab-button-background: var(--vela-paper);
+  --newtab-button-hover-background: var(--vela-terracotta-tint);
+  --newtab-button-active-background: color-mix(in srgb, var(--vela-terracotta) 22%, transparent);
+  --newtab-button-text: var(--vela-ink);
+  --newtab-button-static-background: var(--vela-paper);
+  --newtab-button-static-hover-background: var(--vela-terracotta-tint);
+  --newtab-button-static-active-background: color-mix(in srgb, var(--vela-terracotta) 22%, transparent);
+  --newtab-element-secondary-color: var(--vela-sand-soft);
+  --newtab-element-secondary-hover-color: var(--vela-terracotta-tint);
+  --newtab-element-secondary-active-color: color-mix(in srgb, var(--vela-terracotta) 22%, transparent);
+  --newtab-section-card-box-shadow-color: rgba(31, 27, 22, 0.06);
+  --newtab-inner-box-shadow-color: rgba(31, 27, 22, 0.04);
+  --newtab-overlay-color: color-mix(in srgb, var(--vela-cream) 88%, transparent);
+  --border-radius-large: var(--vela-radius-lg);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vela-cream: #14110D;
+    --vela-paper: #1F1B16;
+    --vela-sand: #2A241D;
+    --vela-sand-soft: #2A241D;
+    --vela-mist: #5A5048;
+    --vela-ink: #E8DCC4;
+    --vela-ink-soft: #B8AFA1;
+    --vela-terracotta: var(--vela-terracotta-soft);
+    --vela-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.30);
+    --vela-shadow-2: 0 2px 6px rgba(0, 0, 0, 0.40);
+    --vela-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.50);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Body — warm parchment background, generous breathing room
+ * ------------------------------------------------------------------ */
+body,
+.activity-stream {
+  background-color: var(--vela-cream) !important;
+  color: var(--vela-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Helvetica Neue", Helvetica, Arial,
+               "Noto Sans", "Noto Sans CJK SC", sans-serif !important;
+  font-feature-settings: "ss01", "cv01", "cv11";
+  -moz-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Soft radial glow at the top — the sun rising over the harbour */
+body::before {
+  content: "";
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1200px;
+  height: 600px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--vela-terracotta-soft) 18%, transparent) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.activity-stream > #root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * The Vela wordmark on the new tab page
+ * ------------------------------------------------------------------ */
+.logo {
+  background-image: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  height: 80px !important;
+  width: 80px !important;
+  margin: 0 auto 16px !important;
+  background-color: var(--vela-paper) !important;
+  border-radius: var(--vela-radius-lg) !important;
+  box-shadow: var(--vela-shadow-2);
+  position: relative;
+}
+
+/* Inject a small Vela sail glyph into the logo area */
+.logo::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  background-image: url("chrome://branding/content/about-wordmark.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+/* ------------------------------------------------------------------ *
+ * Search bar — pill, warm focus
+ * ------------------------------------------------------------------ */
+.search-wrapper .search-inner-wrapper {
+  padding: 0 !important;
+}
+
+.search-wrapper input,
+.search-wrapper .search-handoff-button {
+  background-color: var(--vela-paper) !important;
+  color: var(--vela-ink) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--vela-radius-pill) !important;
+  box-shadow: var(--vela-shadow-1) !important;
+  padding: 14px 20px !important;
+  font-size: 15px !important;
+  transition: border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 220ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.search-wrapper input:hover,
+.search-wrapper .search-handoff-button:hover {
+  border-color: var(--vela-mist) !important;
+  box-shadow: 0 0 0 3px var(--vela-terracotta-tint),
+              var(--vela-shadow-1) !important;
+}
+
+.search-wrapper input:focus,
+.search-wrapper .search-handoff-button:focus,
+.search-wrapper.active .search-handoff-button {
+  border-color: var(--vela-terracotta) !important;
+  box-shadow: 0 0 0 3px var(--vela-terracotta-tint),
+              var(--vela-shadow-2) !important;
+  background-color: var(--vela-paper) !important;
+}
+
+.search-wrapper .search-button {
+  background-color: transparent !important;
+  border-radius: var(--vela-radius-pill) !important;
+}
+
+.search-wrapper .search-button:hover {
+  background-color: var(--vela-terracotta-tint) !important;
+}
+
+/* Search engine dropdown — a card */
+.search-wrapper .search-actions-menu,
+.context-menu {
+  background-color: var(--vela-paper) !important;
+  border: 1px solid color-mix(in srgb, var(--vela-ink) 10%, transparent) !important;
+  border-radius: var(--vela-radius) !important;
+  box-shadow: var(--vela-shadow-3) !important;
+  overflow: hidden;
+}
+
+.context-menu > ul > li > button:hover {
+  background-color: var(--vela-terracotta-tint) !important;
+  color: var(--vela-ink) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Top sites — smooth stones
+ * ------------------------------------------------------------------ */
+.top-sites-list .top-site-outer {
+  border-radius: var(--vela-radius) !important;
+  padding: 12px 8px !important;
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.top-sites-list .top-site-outer:hover {
+  background-color: var(--vela-terracotta-tint) !important;
+  transform: translateY(-2px);
+}
+
+.top-sites-list .top-site-outer .tile {
+  background-color: var(--vela-paper) !important;
+  border-radius: var(--vela-radius) !important;
+  box-shadow: var(--vela-shadow-1) !important;
+  border: 1px solid color-mix(in srgb, var(--vela-ink) 6%, transparent) !important;
+  transition: box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 220ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.top-sites-list .top-site-outer:hover .tile {
+  box-shadow: var(--vela-shadow-2) !important;
+  transform: scale(1.04);
+}
+
+.top-sites-list .top-site-outer .title {
+  color: var(--vela-ink-soft) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  padding: 0 4px !important;
+}
+
+.top-sites-list .top-site-outer .title .icon {
+  display: none !important;
+}
+
+/* The pin icon on hover */
+.top-sites-list .top-site-outer .top-site-icon {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Section headers — calm, slightly larger, warmer
+ * ------------------------------------------------------------------ */
+.section-top-bar,
+.discovery-stream .ds-section-grid .ds-section-heading,
+.collapsible-section .section-title-container {
+  color: var(--vela-ink) !important;
+}
+
+.section-title,
+.collapsible-section .section-title h2,
+.ds-header {
+  color: var(--vela-ink) !important;
+  font-weight: 600 !important;
+  font-size: 18px !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* "More" / context menu buttons */
+.section-top-bar .context-menu-button,
+.icon.icon-section-more {
+  border-radius: var(--vela-radius) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Cards (highlights, pocket, recent activity) — soft warm paper
+ * ------------------------------------------------------------------ */
+.ds-card,
+.ds-card-grid .ds-card,
+.card-outer {
+  background-color: var(--vela-paper) !important;
+  border-radius: var(--vela-radius-lg) !important;
+  box-shadow: var(--vela-shadow-1) !important;
+  border: 1px solid color-mix(in srgb, var(--vela-ink) 5%, transparent) !important;
+  overflow: hidden;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.ds-card:hover,
+.ds-card-grid .ds-card:hover,
+.card-outer:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--vela-shadow-3) !important;
+}
+
+.ds-card .ds-card-link,
+.ds-card .meta {
+  padding: 16px 18px !important;
+}
+
+.ds-card .ds-card-title,
+.ds-card .title {
+  color: var(--vela-ink) !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  letter-spacing: -0.005em !important;
+  line-height: 1.35 !important;
+}
+
+.ds-card .ds-card-desc,
+.ds-card .description,
+.ds-card .excerpt {
+  color: var(--vela-ink-soft) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+.ds-card .ds-card-context,
+.ds-card .source,
+.ds-card .meta .source {
+  color: var(--vela-terracotta) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* Sponsored disclosure — slightly dimmed */
+.ds-card .sponsored-label,
+.ds-card [data-l10n-id="newtab-pocket-sponsored"] {
+  color: var(--vela-mist) !important;
+  font-size: 10px !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Section dividers — a thin terracotta thread
+ * ------------------------------------------------------------------ */
+.collapsible-section .section-body,
+.section-disclaimer {
+  border-color: color-mix(in srgb, var(--vela-ink) 8%, transparent) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Personalize (customise) panel — Vela card
+ * ------------------------------------------------------------------ */
+.modalOverlayOuter {
+  background-color: color-mix(in srgb, var(--vela-ink) 60%, transparent) !important;
+}
+
+.modalOverlayInner,
+.customize-menu {
+  background-color: var(--vela-paper) !important;
+  color: var(--vela-ink) !important;
+  border-left: 1px solid color-mix(in srgb, var(--vela-ink) 8%, transparent) !important;
+}
+
+.customize-menu .close-button-wrapper .icon-close {
+  border-radius: var(--vela-radius) !important;
+}
+
+.customize-menu .close-button-wrapper .icon-close:hover {
+  background-color: var(--vela-terracotta-tint) !important;
+}
+
+/* Toggle switches in the customise panel */
+.toggle-button {
+  --toggle-background-color: var(--vela-sand) !important;
+  --toggle-background-color-hover: var(--vela-terracotta-tint) !important;
+  --toggle-background-color-active: var(--vela-terracotta) !important;
+  --toggle-dot-background-color: var(--vela-paper) !important;
+  --toggle-border-color: transparent !important;
+  border-radius: var(--vela-radius-pill) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons — softer, rounded
+ * ------------------------------------------------------------------ */
+button,
+.btn,
+.modal-button {
+  border-radius: var(--vela-radius) !important;
+  font-weight: 500 !important;
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+button.primary,
+.btn.primary,
+.modal-button.primary {
+  background-color: var(--vela-terracotta) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+}
+
+button.primary:hover,
+.btn.primary:hover,
+.modal-button.primary:hover {
+  background-color: var(--vela-terracotta-soft) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Modal / dialog
+ * ------------------------------------------------------------------ */
+.modal {
+  background-color: var(--vela-paper) !important;
+  color: var(--vela-ink) !important;
+  border-radius: var(--vela-radius-lg) !important;
+  box-shadow: var(--vela-shadow-3) !important;
+  border: 1px solid color-mix(in srgb, var(--vela-ink) 6%, transparent) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Weather widget (if shown) — calm card
+ * ------------------------------------------------------------------ */
+.weatherCard,
+.ds-card .weather-card {
+  background-color: var(--vela-paper) !important;
+  border-radius: var(--vela-radius-lg) !important;
+  box-shadow: var(--vela-shadow-1) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Pocket / sponsored content — visually de-emphasised
+ * ------------------------------------------------------------------ */
+.ds-stories-card,
+.pocket-section {
+  opacity: 0.92;
+}
+
+/* ------------------------------------------------------------------ *
+ * Scrollbars
+ * ------------------------------------------------------------------ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vela-mist) transparent;
+}
+
+/* ------------------------------------------------------------------ *
+ * Selection colour
+ * ------------------------------------------------------------------ */
+::selection {
+  background-color: var(--vela-terracotta-tint);
+  color: var(--vela-ink);
+}

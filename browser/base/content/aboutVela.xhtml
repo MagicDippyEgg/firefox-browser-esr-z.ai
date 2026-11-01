@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<!--
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+  about:vela — the Vela browser's home page. A calm welcome screen with
+  the wordmark, tagline, version info, and a few helpful shortcuts.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-l10n-id="vela-about-title">About Vela</title>
+    <link rel="icon" type="image/png" href="chrome://branding/content/icon32.png" />
+    <link rel="localization" href="branding/brand.ftl" />
+    <link rel="stylesheet" href="chrome://browser/skin/vela/vela-theme.css" />
+    <style>
+      /* about:vela-specific layout. The Vela theme provides the palette
+         via custom properties; this stylesheet just composes the page. */
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: var(--vela-cream, #F7F2E8);
+        color: var(--vela-ink, #1F1B16);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     "Helvetica Neue", Helvetica, Arial,
+                     "Noto Sans", "Noto Sans CJK SC", sans-serif;
+        -moz-font-smoothing: antialiased;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-image:
+          radial-gradient(ellipse at 50% -20%,
+            color-mix(in srgb, var(--vela-terracotta-soft, #E07856) 22%, transparent) 0%,
+            transparent 55%);
+        background-attachment: fixed;
+      }
+      @media (prefers-color-scheme: dark) {
+        html, body {
+          background-color: var(--vela-night, #14110D);
+          color: var(--vela-cream-dark, #E8DCC4);
+        }
+      }
+      .vela-card {
+        background-color: var(--vela-paper, #FDFAF3);
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(31, 27, 22, 0.10),
+                    0 2px 6px rgba(31, 27, 22, 0.06);
+        border: 1px solid color-mix(in srgb, var(--vela-ink, #1F1B16) 6%, transparent);
+        padding: 56px 64px 48px;
+        max-width: 560px;
+        width: calc(100% - 48px);
+        text-align: center;
+        position: relative;
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-card {
+          background-color: var(--vela-night-card, #2A241D);
+          border-color: rgba(232, 220, 196, 0.08);
+        }
+      }
+      .vela-logo {
+        width: 96px;
+        height: 96px;
+        margin: 0 auto 24px;
+        display: block;
+      }
+      h1 {
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 0 6px;
+      }
+      .vela-tagline {
+        font-size: 16px;
+        color: var(--vela-ink-soft, #4A4238);
+        font-style: italic;
+        margin: 0 0 32px;
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-tagline {
+          color: var(--vela-cream-dark-soft, #B8AFA1);
+        }
+      }
+      .vela-version {
+        font-size: 12px;
+        color: color-mix(in srgb, var(--vela-ink, #1F1B16) 50%, transparent);
+        margin: 0 0 28px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .vela-shortcuts {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .vela-shortcut {
+        display: block;
+        padding: 12px 16px;
+        background-color: color-mix(in srgb, var(--vela-ink, #1F1B16) 4%, transparent);
+        color: var(--vela-ink, #1F1B16);
+        text-decoration: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+                    transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-shortcut {
+          background-color: rgba(232, 220, 196, 0.06);
+          color: var(--vela-cream-dark, #E8DCC4);
+        }
+      }
+      .vela-shortcut:hover {
+        background-color: color-mix(in srgb, var(--vela-terracotta, #C8553D) 12%, transparent);
+        transform: translateY(-1px);
+      }
+      .vela-shortcut .kbd {
+        float: right;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 11px;
+        opacity: 0.6;
+      }
+      .vela-features {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid color-mix(in srgb, var(--vela-ink, #1F1B16) 8%, transparent);
+        text-align: left;
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-features {
+          border-top-color: rgba(232, 220, 196, 0.10);
+        }
+      }
+      .vela-features h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: color-mix(in srgb, var(--vela-ink, #1F1B16) 55%, transparent);
+        margin: 0 0 12px;
+        font-weight: 600;
+      }
+      .vela-features ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .vela-features li {
+        padding: 6px 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: var(--vela-ink-soft, #4A4238);
+      }
+      @media (prefers-color-scheme: dark) {
+        .vela-features li {
+          color: var(--vela-cream-dark-soft, #B8AFA1);
+        }
+      }
+      .vela-features li strong {
+        color: var(--vela-terracotta, #C8553D);
+        font-weight: 600;
+      }
+      .vela-footer {
+        margin-top: 28px;
+        font-size: 11px;
+        color: color-mix(in srgb, var(--vela-ink, #1F1B16) 45%, transparent);
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="vela-card">
+      <img class="vela-logo"
+           src="chrome://branding/content/about-wordmark.svg"
+           alt="Vela" />
+      <h1>Vela</h1>
+      <p class="vela-tagline">Sail the open web.</p>
+      <p class="vela-version" id="vela-version">Version</p>
+
+      <nav class="vela-shortcuts">
+        <a class="vela-shortcut" href="about:preferences">Settings<span class="kbd">Ctrl+,</span></a>
+        <a class="vela-shortcut" href="about:downloads">Downloads<span class="kbd">Ctrl+J</span></a>
+        <a class="vela-shortcut" href="about:home">New Tab<span class="kbd">Ctrl+T</span></a>
+        <a class="vela-shortcut" href="about:privatebrowsing">Private Window<span class="kbd">Ctrl+Shift+P</span></a>
+      </nav>
+
+      <section class="vela-features">
+        <h2>Original features</h2>
+        <ul>
+          <li><strong>Focus Mode</strong> — hide all chrome, leave only the page. <em>Ctrl+Shift+F</em></li>
+          <li><strong>Harbor</strong> — a unified sidebar for bookmarks, history and downloads. <em>Ctrl+Alt+H</em></li>
+          <li><strong>Tides</strong> — collapsible tab groups to keep the tab strip calm. <em>Ctrl+Shift+G</em></li>
+          <li><strong>Sepia Reader</strong> — a warm sepia tint for long reads, no transform. <em>Ctrl+Alt+R</em></li>
+        </ul>
+      </section>
+
+      <p class="vela-footer">A calm browser, crafted from the Mozilla Firefox ESR engine.</p>
+    </main>
+
+    <script src="chrome://browser/content/aboutVela.js"></script>
+  </body>
+</html>

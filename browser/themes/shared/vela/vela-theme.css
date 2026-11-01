@@ -1,0 +1,636 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/*
+ * Vela — the calm browser.
+ *
+ * This stylesheet is the visual identity of Vela. It overrides Firefox's
+ * default chrome with a warm, calm, parchment-toned design language.
+ *
+ * Design tokens:
+ *   --vela-cream        #F7F2E8   warm parchment (light surface)
+ *   --vela-paper        #FDFAF3   lightest highlight
+ *   --vela-sand         #E8DCC4   warm neutral divider
+ *   --vela-mist         #B8AFA1   muted text/border
+ *   --vela-ink          #1F1B16   deep warm dark (primary text)
+ *   --vela-ink-soft     #4A4238   secondary text
+ *   --vela-terracotta   #C8553D   sunset accent (primary action)
+ *   --vela-terracotta-soft #E07856 hover/secondary accent
+ *   --vela-teal         #2D5F5D   calm secondary
+ *   --vela-teal-soft    #7FB0AC   hover/secondary
+ *
+ * Dark mode counterparts:
+ *   --vela-night        #14110D   warm dark background
+ *   --vela-night-soft   #1F1B16   slightly lighter dark surface
+ *   --vela-cream-dark   #E8DCC4   warm light text on dark
+ */
+
+@layer vela-foundation, vela-chrome, vela-tabs, vela-urlbar, vela-buttons, vela-panels;
+
+/* ------------------------------------------------------------------ *
+ * Foundation tokens
+ * ------------------------------------------------------------------ */
+@layer vela-foundation {
+  :root,
+  :host {
+    /* Brand palette */
+    --vela-cream: #F7F2E8;
+    --vela-paper: #FDFAF3;
+    --vela-sand: #E8DCC4;
+    --vela-sand-soft: #F1E6D2;
+    --vela-mist: #B8AFA1;
+    --vela-ink: #1F1B16;
+    --vela-ink-soft: #4A4238;
+    --vela-terracotta: #C8553D;
+    --vela-terracotta-soft: #E07856;
+    --vela-terracotta-tint: rgba(200, 85, 61, 0.12);
+    --vela-teal: #2D5F5D;
+    --vela-teal-soft: #7FB0AC;
+    --vela-teal-tint: rgba(45, 95, 93, 0.12);
+
+    /* Dark mode */
+    --vela-night: #14110D;
+    --vela-night-soft: #1F1B16;
+    --vela-night-card: #2A241D;
+    --vela-cream-dark: #E8DCC4;
+    --vela-cream-dark-soft: #B8AFA1;
+
+    /* Motion */
+    --vela-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --vela-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --vela-duration-fast: 140ms;
+    --vela-duration: 220ms;
+    --vela-duration-slow: 360ms;
+
+    /* Geometry */
+    --vela-radius-sm: 6px;
+    --vela-radius: 10px;
+    --vela-radius-lg: 14px;
+    --vela-radius-pill: 999px;
+
+    /* Surface elevations */
+    --vela-shadow-1: 0 1px 2px rgba(31, 27, 22, 0.06),
+                     0 1px 1px rgba(31, 27, 22, 0.04);
+    --vela-shadow-2: 0 2px 6px rgba(31, 27, 22, 0.08),
+                     0 1px 2px rgba(31, 27, 22, 0.06);
+    --vela-shadow-3: 0 8px 24px rgba(31, 27, 22, 0.12),
+                     0 2px 6px rgba(31, 27, 22, 0.08);
+  }
+
+  :root {
+    /* Map Vela palette onto Firefox's chrome tokens using light-dark()
+     * so a single rule covers both colour schemes. */
+    --vela-surface: light-dark(var(--vela-cream), var(--vela-night));
+    --vela-surface-soft: light-dark(var(--vela-paper), var(--vela-night-soft));
+    --vela-surface-card: light-dark(var(--vela-paper), var(--vela-night-card));
+    --vela-text: light-dark(var(--vela-ink), var(--vela-cream-dark));
+    --vela-text-soft: light-dark(var(--vela-ink-soft), var(--vela-cream-dark-soft));
+    --vela-divider: light-dark(rgba(31, 27, 22, 0.10), rgba(232, 220, 196, 0.10));
+    --vela-accent: light-dark(var(--vela-terracotta), var(--vela-terracotta-soft));
+    --vela-accent-text: #FFFFFF;
+    --vela-accent-tint: light-dark(var(--vela-terracotta-tint), rgba(224, 120, 86, 0.16));
+    --vela-secondary: light-dark(var(--vela-teal), var(--vela-teal-soft));
+    --vela-secondary-tint: light-dark(var(--vela-teal-tint), rgba(127, 176, 172, 0.16));
+
+    /* Override Firefox chrome tokens. These are the variables read by
+     * toolbar.css, tabs.css, urlbar, etc. */
+    --toolbar-bgcolor: var(--vela-surface);
+    --toolbar-non-lwt-bgcolor: var(--vela-surface);
+    --toolbar-background-color: var(--vela-surface);
+    --toolbar-text-color: var(--vela-text);
+    --toolbar-non-lwt-textcolor: var(--vela-text);
+    --toolbar-field-background-color: var(--vela-surface-soft);
+    --toolbar-field-color: var(--vela-text);
+    --toolbar-field-border-color: transparent;
+    --toolbar-field-focus-background-color: var(--vela-surface-soft);
+    --toolbar-field-focus-color: var(--vela-text);
+    --toolbar-field-focus-border-color: var(--vela-accent);
+    --toolbarbutton-border-radius: var(--vela-radius-sm);
+    --toolbarbutton-active-background: var(--vela-accent-tint);
+    --toolbarbutton-hover-background: var(--vela-accent-tint);
+    --urlbar-box-bgcolor: var(--vela-accent-tint);
+    --urlbarView-highlight-background: var(--vela-accent-tint);
+    --urlbarView-hover-background: color-mix(in srgb, var(--vela-accent) 8%, transparent);
+    --tab-border-radius: var(--vela-radius-sm);
+    --tab-selected-outline-color: transparent;
+    --tab-outline-color: transparent;
+    --tab-attention-dot-color: var(--vela-accent);
+    --tab-loading-fill: var(--vela-accent);
+    --chrome-content-separator-color: var(--vela-divider);
+    --tabs-navbar-separator-color: transparent;
+    --tabs-navbar-separator-style: none;
+    --arrowpanel-background: var(--vela-surface-card);
+    --arrowpanel-color: var(--vela-text);
+    --arrowpanel-border-color: var(--vela-divider);
+    --panel-background: var(--vela-surface-card);
+    --panel-color: var(--vela-text);
+    --panel-border-color: var(--vela-divider);
+    --panel-border-radius: var(--vela-radius-lg);
+    --panel-shadow: var(--vela-shadow-3);
+    --focus-outline-color: var(--vela-accent);
+    --button-background-color: var(--vela-surface-card);
+    --button-text-color: var(--vela-text);
+    --button-background-color-hover: var(--vela-accent-tint);
+    --button-background-color-active: color-mix(in srgb, var(--vela-accent) 24%, transparent);
+    --button-primary-bgcolor: var(--vela-accent);
+    --button-primary-color: var(--vela-accent-text);
+    --button-primary-bgcolor-hover: color-mix(in srgb, var(--vela-accent) 88%, #FFFFFF);
+    --button-primary-bgcolor-active: color-mix(in srgb, var(--vela-accent) 76%, #000000);
+    --input-bgcolor: var(--vela-surface-soft);
+    --input-color: var(--vela-text);
+    --input-border-color: var(--vela-divider);
+    --link-color: var(--vela-accent);
+    --link-color-hover: color-mix(in srgb, var(--vela-accent) 88%, #FFFFFF);
+    --link-color-active: color-mix(in srgb, var(--vela-accent) 76%, #000000);
+    --color-accent-primary: var(--vela-accent);
+    --color-accent-attention: var(--vela-accent);
+    --checkbox-border-color: var(--vela-mist);
+    --checkbox-checked-bgcolor: var(--vela-accent);
+    --checkbox-unchecked-bgcolor: var(--vela-surface-soft);
+    --urlbar-icon-border-radius: var(--vela-radius-sm);
+    --urlbar-icon-padding: 6px;
+    --urlbar-margin-inline: 4px;
+    --tab-block-margin: 2px;
+    --tab-inline-padding: 10px;
+
+    /* Window background — used by the titlebar and the area behind tabs */
+    --toolbox-background-color: var(--vela-surface);
+    --toolbox-text-color: var(--vela-text);
+    --toolbox-background-color-inactive: color-mix(in srgb, var(--vela-surface) 92%, var(--vela-mist));
+    --toolbox-text-color-inactive: var(--vela-text-soft);
+
+    color-scheme: light dark;
+  }
+
+  /* When the system colour scheme is dark, dim the warm cream to a warm night. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([lwtheme]) {
+      --vela-surface: var(--vela-night);
+      --vela-surface-soft: var(--vela-night-soft);
+      --vela-surface-card: var(--vela-night-card);
+      --vela-text: var(--vela-cream-dark);
+      --vela-text-soft: var(--vela-cream-dark-soft);
+      --vela-divider: rgba(232, 220, 196, 0.10);
+      --vela-accent: var(--vela-terracotta-soft);
+      --vela-secondary: var(--vela-teal-soft);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Chrome — toolbox, titlebar, window background
+ * ------------------------------------------------------------------ */
+@layer vela-chrome {
+  :root,
+  body {
+    background-color: var(--vela-surface);
+    color: var(--vela-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 "Helvetica Neue", Helvetica, Arial,
+                 "Noto Sans", "Noto Sans CJK SC", sans-serif;
+    font-feature-settings: "ss01", "cv01", "cv11";
+    -moz-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* The navigator toolbox (the band holding tabs + toolbar). */
+  #navigator-toolbox {
+    background-color: var(--vela-surface) !important;
+    color: var(--vela-text);
+    border-bottom: 1px solid var(--vela-divider);
+  }
+
+  /* The chrome separator line that Firefox draws below the toolbar. */
+  #navigator-toolbox::after {
+    display: none;
+  }
+
+  /* The titlebar (draggable region behind tabs). */
+  #titlebar {
+    color: var(--vela-text);
+  }
+
+  /* Soft inactive state — when the window loses focus, dim slightly. */
+  :root:-moz-window-inactive #navigator-toolbox {
+    background-color: var(--toolbox-background-color-inactive);
+  }
+
+  /* The content area (where the web page is rendered). */
+  #appcontent,
+  #tabbrowser-tabpanel,
+  .browserSidebarContainer {
+    background-color: var(--vela-surface-soft);
+  }
+
+  /* Toolbar surfaces. */
+  .browser-toolbar,
+  #nav-bar,
+  #PersonalToolbar {
+    background-color: var(--vela-surface) !important;
+    color: var(--vela-text);
+  }
+
+  /* Bookmarks toolbar — slightly recessed. */
+  #PersonalToolbar {
+    border-top: 1px solid var(--vela-divider);
+    background-image: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--vela-surface-soft) 50%, transparent),
+      transparent
+    );
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Tabs — softer, rounded, sail-like
+ * ------------------------------------------------------------------ */
+@layer vela-tabs {
+  /* The tabstrip background. */
+  #tabbrowser-tabs {
+    background-color: transparent;
+  }
+
+  /* Individual tab. */
+  .tabbrowser-tab {
+    border-radius: var(--vela-radius-sm);
+    padding-inline: 2px;
+    color: var(--vela-text-soft);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out),
+                color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+
+  .tabbrowser-tab:hover:not([selected]):not([multiselected]) > .tab-stack
+    > .tab-background {
+    background-color: var(--vela-accent-tint);
+    border-radius: var(--vela-radius-sm);
+  }
+
+  /* Selected tab — a warm "sail" raised above the strip. */
+  .tabbrowser-tab[selected] > .tab-stack > .tab-background,
+  .tabbrowser-tab[multiselected] > .tab-stack > .tab-background {
+    background-color: var(--vela-surface-soft) !important;
+    border-radius: var(--vela-radius-sm);
+    box-shadow: var(--vela-shadow-1);
+    outline: none;
+    border: 1px solid var(--vela-divider);
+    border-bottom-color: transparent;
+  }
+
+  .tabbrowser-tab[selected] {
+    color: var(--vela-text);
+  }
+
+  /* The thin "sail edge" underline on the selected tab — a tiny terracotta
+   * accent that reads as the curved base of a sail. */
+  .tabbrowser-tab[selected] > .tab-stack > .tab-background::before {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 14%;
+    right: 14%;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--vela-accent) 30%,
+      var(--vela-accent) 70%,
+      transparent
+    );
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  /* Tab loading burst — a soft terracotta pulse. */
+  .tab-loading-burst {
+    fill: var(--vela-accent) !important;
+  }
+
+  /* Tab close button — softer hover. */
+  .tab-close-button {
+    border-radius: var(--vela-radius-sm);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+  .tab-close-button:hover {
+    background-color: var(--vela-accent-tint);
+  }
+
+  /* New-tab button — pill-shaped, gentle. */
+  #tabs-newtab-button,
+  #new-tab-button {
+    border-radius: var(--vela-radius-sm);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+  #tabs-newtab-button:hover,
+  #new-tab-button:hover {
+    background-color: var(--vela-accent-tint);
+  }
+
+  /* Container/identity tab indicators use Vela secondary colour. */
+  .tab-context-line {
+    background-color: var(--vela-secondary);
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * URL bar — pill shape, warm focus
+ * ------------------------------------------------------------------ */
+@layer vela-urlbar {
+  #urlbar,
+  #searchbar {
+    --urlbar-height: 32px;
+    --urlbar-toolbar-height: 36px;
+    border-radius: var(--vela-radius-pill);
+    background-color: var(--vela-surface-soft);
+    border: 1px solid transparent;
+    transition: border-color var(--vela-duration) var(--vela-ease-out),
+                box-shadow var(--vela-duration) var(--vela-ease-out),
+                background-color var(--vela-duration) var(--vela-ease-out);
+  }
+
+  /* Hover — a faint terracotta halo. */
+  #urlbar:not([focused]):not([open]):hover {
+    border-color: var(--vela-divider);
+    box-shadow: 0 0 0 3px var(--vela-accent-tint);
+  }
+
+  /* Focus — clean pill with terracotta outline. */
+  #urlbar[focused],
+  #urlbar[open] {
+    border-color: var(--vela-accent);
+    box-shadow: 0 0 0 3px var(--vela-accent-tint),
+                var(--vela-shadow-1);
+    background-color: var(--vela-surface-soft);
+  }
+
+  /* The URL bar container. */
+  #urlbar-container {
+    --urlbar-container-padding: 0;
+  }
+
+  /* URL bar input text. */
+  #urlbar-input,
+  #urlbar-scheme,
+  .urlbar-input {
+    color: var(--vela-text);
+    font-feature-settings: "ss01";
+  }
+
+  /* URL bar icons — softer, more circular. */
+  .urlbar-page-action,
+  .urlbar-go-button,
+  .urlbar-revert-button,
+  .search-go-button {
+    border-radius: var(--vela-radius-sm);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+  .urlbar-page-action:hover,
+  .urlbar-go-button:hover,
+  .urlbar-revert-button:hover,
+  .search-go-button:hover {
+    background-color: var(--vela-accent-tint);
+  }
+
+  /* The identity box (lock icon + site name). */
+  #identity-box {
+    border-radius: var(--vela-radius-pill);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+  #identity-box:hover {
+    background-color: var(--vela-accent-tint);
+  }
+
+  /* URL bar dropdown — a card with soft shadow. */
+  #urlbar-results,
+  .urlbarView-body-inner {
+    background-color: var(--vela-surface-card);
+    border-radius: var(--vela-radius);
+  }
+
+  .urlbarView-row[selected] {
+    background-color: var(--vela-accent-tint) !important;
+    border-radius: var(--vela-radius-sm);
+  }
+  .urlbarView-row:hover {
+    background-color: var(--vela-accent-tint);
+    border-radius: var(--vela-radius-sm);
+  }
+
+  /* Search engine one-off buttons. */
+  .searchbar-engine-one-off-item {
+    border-radius: var(--vela-radius-sm);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+  .searchbar-engine-one-off-item:hover {
+    background-color: var(--vela-accent-tint);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Toolbar buttons — softer, rounded, gentle hover
+ * ------------------------------------------------------------------ */
+@layer vela-buttons {
+  .toolbarbutton-1,
+  .toolbarbutton-2,
+  .toolbarbutton-menubutton-button,
+  .toolbarbutton-menubutton-dropmarker {
+    border-radius: var(--vela-radius-sm);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out),
+                color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+
+  .toolbarbutton-1:not([disabled]):hover,
+  .toolbarbutton-2:not([disabled]):hover {
+    background-color: var(--vela-accent-tint);
+  }
+
+  .toolbarbutton-1:not([disabled]):hover:active,
+  .toolbarbutton-2:not([disabled]):hover:active {
+    background-color: color-mix(in srgb, var(--vela-accent) 22%, transparent);
+  }
+
+  /* The application menu (hamburger) button — circular. */
+  #PanelUI-menu-button {
+    border-radius: var(--vela-radius-pill);
+  }
+
+  /* Toolbar buttons inside the nav bar. */
+  #nav-bar .toolbarbutton-1 > .toolbarbutton-icon,
+  #nav-bar .toolbarbutton-1 > .toolbarbutton-badge-stack {
+    border-radius: var(--vela-radius-sm);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Panels, popups, menus — cards with soft shadow
+ * ------------------------------------------------------------------ */
+@layer vela-panels {
+  panel,
+  .panel-arrowcontent,
+  #appMenu-popup,
+  #PanelUI-popup,
+  .menupopup-arrowscrollbox {
+    --panel-background: var(--vela-surface-card);
+    --panel-color: var(--vela-text);
+    --panel-border-color: var(--vela-divider);
+    --panel-border-radius: var(--vela-radius-lg);
+    --panel-shadow: var(--vela-shadow-3);
+  }
+
+  /* App menu / panel items — softer hover, rounded. */
+  .subviewbutton,
+  .panel-subview-footer-button,
+  .toolbaritem-menubutton,
+  .PanelUI-subView .subviewbutton {
+    border-radius: var(--vela-radius-sm);
+    transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+  }
+
+  .subviewbutton:not([disabled]):hover,
+  .panel-subview-footer-button:not([disabled]):hover {
+    background-color: var(--vela-accent-tint);
+  }
+
+  /* The app menu header — Vela wordmark and tagline. */
+  #appMenu-header {
+    padding-block: 8px 12px;
+  }
+
+  /* Context menu items. */
+  menupopup > menuitem,
+  menupopup > menu {
+    border-radius: var(--vela-radius-sm);
+  }
+
+  /* Separators in panels — thin and warm. */
+  .panel-subview-body .toolbarseparator,
+  .toolbarseparator {
+    border-color: var(--vela-divider);
+  }
+
+  /* Bookmarks menu items. */
+  .bookmark-item {
+    border-radius: var(--vela-radius-sm);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Focus mode — hide all chrome except the active page.
+ * Activated by setting [vela-focus-mode="true"] on :root.
+ * ------------------------------------------------------------------ */
+:root[vela-focus-mode="true"] #navigator-toolbox {
+  visibility: collapse;
+  transition: visibility 0s linear var(--vela-duration-slow);
+}
+
+:root[vela-focus-mode="true"] #titlebar {
+  visibility: collapse;
+}
+
+/* A small floating "exit focus" pill that appears in focus mode. */
+#vela-focus-exit {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  display: none;
+  padding: 6px 14px;
+  border-radius: var(--vela-radius-pill);
+  background-color: var(--vela-surface-card);
+  color: var(--vela-text);
+  border: 1px solid var(--vela-divider);
+  box-shadow: var(--vela-shadow-2);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  opacity: 0;
+  transition: opacity var(--vela-duration) var(--vela-ease-out);
+}
+
+:root[vela-focus-mode="true"] #vela-focus-exit {
+  display: block;
+  opacity: 1;
+  transition-delay: var(--vela-duration);
+}
+
+#vela-focus-exit:hover {
+  background-color: var(--vela-accent-tint);
+}
+
+/* ------------------------------------------------------------------ *
+ * Tab groups (Tides) — soft colour tints
+ * ------------------------------------------------------------------ */
+.tab-group-label-container,
+.tab-group-editor {
+  border-radius: var(--vela-radius-sm);
+}
+
+/* ------------------------------------------------------------------ *
+ * Sidebar (Harbor) — warm surface
+ * ------------------------------------------------------------------ */
+#sidebar-box,
+#sidebar {
+  background-color: var(--vela-surface-soft);
+  color: var(--vela-text);
+  border-right: 1px solid var(--vela-divider);
+}
+
+#sidebar-header {
+  background-color: var(--vela-surface);
+  border-bottom: 1px solid var(--vela-divider);
+  padding: 8px 12px;
+  font-weight: 600;
+  color: var(--vela-text);
+}
+
+/* ------------------------------------------------------------------ *
+ * Find bar — soft and rounded
+ * ------------------------------------------------------------------ */
+.findbar-container,
+#FindToolbar {
+  background-color: var(--vela-surface-card);
+  border-top: 1px solid var(--vela-divider);
+  padding: 6px 12px;
+}
+
+.findbar-textbox {
+  border-radius: var(--vela-radius-sm);
+  border: 1px solid var(--vela-divider);
+  background-color: var(--vela-surface-soft);
+  color: var(--vela-text);
+}
+
+.findbar-textbox[focused] {
+  border-color: var(--vela-accent);
+  box-shadow: 0 0 0 3px var(--vela-accent-tint);
+}
+
+/* ------------------------------------------------------------------ *
+ * Status panel (the small link preview at the bottom)
+ * ------------------------------------------------------------------ */
+#statuspanel label {
+  background-color: var(--vela-surface-card);
+  color: var(--vela-text);
+  border-radius: var(--vela-radius-sm) var(--vela-radius-sm) 0 0;
+  border: 1px solid var(--vela-divider);
+  border-bottom: none;
+  padding: 2px 8px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Scrollbars — softer, thinner, warm
+ * ------------------------------------------------------------------ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vela-mist) transparent;
+}
+
+/* ------------------------------------------------------------------ *
+ * Selection colour
+ * ------------------------------------------------------------------ */
+::selection {
+  background-color: var(--vela-accent-tint);
+  color: var(--vela-text);
+}

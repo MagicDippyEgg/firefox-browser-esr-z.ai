@@ -3630,3 +3630,49 @@ pref("distribution.mozillaonline.ignore", true);
 #ifdef XP_MACOSX
   pref("browser.macAppMenu.setAsDefaultShown", false);
 #endif
+
+// ---------------------------------------------------------------------
+// Vela — original browser preferences.
+//
+// These prefs control the four signature Vela features and a few visual
+// defaults. They are intentionally namespaced under "vela.*" so they're
+// easy to discover and don't collide with Firefox's own prefs.
+// ---------------------------------------------------------------------
+
+// Focus Mode — hide all chrome except the active page (Ctrl+Shift+F).
+// Tracks the *persisted* focus-mode state so it survives restarts.
+pref("vela.focusmode.active", false);
+
+// Sepia Reader — a warm sepia tint applied to the active page (Ctrl+Alt+R).
+// Configurable intensity, 0.0–1.0. Default 0.30 is "calm sepia, not antique".
+pref("vela.sepia-reader.intensity", 0.30);
+
+// Tides — collapsible tab groups (Ctrl+Shift+G).
+// Default colour for new tides. One of: gray, blue, cyan, green, orange,
+// pink, purple, red, yellow. Vela defaults to "orange" (closest to the
+// terracotta accent in the brand palette).
+pref("vela.tides.default-color", "orange");
+
+// Whether new tides are collapsed by default when created.
+pref("vela.tides.collapse-by-default", false);
+
+// Harbor — unified sidebar (Ctrl+Alt+H).
+// Default view: "bookmarks", "history", or "downloads".
+pref("vela.harbor.default-view", "bookmarks");
+
+// Visual identity: which new tab background style to render. One of:
+//   "harbour-dawn" — warm radial glow at the top (default).
+//   "plain"        — flat parchment, no glow.
+pref("vela.newtab.background-style", "harbour-dawn");
+
+// Feature toggles — let users disable any Vela feature without affecting
+// the rest of the browser.
+pref("vela.feature.focus-mode.enabled", true);
+pref("vela.feature.harbor.enabled", true);
+pref("vela.feature.tides.enabled", true);
+pref("vela.feature.sepia-reader.enabled", true);
+
+// The default homepage. Vela keeps Firefox's about:home, which now serves
+// the Calm New Tab dashboard.
+pref("browser.startup.homepage", "about:home");
+
