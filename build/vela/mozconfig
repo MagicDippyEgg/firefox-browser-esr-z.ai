@@ -1,0 +1,58 @@
+# Vela build mozconfig — used by the GitHub Actions build workflow.
+#
+# This is a minimal, release-oriented mozconfig for building Vela as a
+# complete, optimised, packaged browser. It is *not* a debug build and
+# *not* an artifact build — it compiles the full Firefox/Gecko engine
+# from source so the resulting `vela` binary is a real, distributable
+# browser.
+#
+# The GitHub Actions workflow (`.github/workflows/build-vela.yml`) copies
+# this file to the repository root as `mozconfig` before running
+# `./mach build`, because `mozconfig*` is in `.gitignore` and would
+# otherwise not be tracked.
+#
+# Build characteristics:
+#   - --enable-project=browser          build the Firefox/Vela browser
+#   - --enable-official-branding        use the Vela official branding
+#   - --disable-debug                   no C++/JS assertions
+#   - --enable-optimize=-O2             optimised C++
+#   - --disable-tests                   skip test harnesses (saves time + disk)
+#   - --with-ccache=sccache             cache C/C++/Rust compilations across runs
+#   - MOZ_PARALLEL_BUILD=-1             let mach pick parallelism (we cap via -j in the workflow)
+#   - AUTOCLOBBER=1                     automatically clobbers if CLOBBER changed
+#
+# Why these trade-offs:
+#   - --disable-tests cuts ~20% off build time and ~3GB off disk usage
+#     without removing any browser functionality the end user sees.
+#     Tests can still be enabled in a separate debug build.
+#   - sccache is installed by the workflow and dramatically speeds up
+#     incremental rebuilds (and even cold builds, via the GitHub Actions
+#     cache backend).
+#
+# The binary name (vela), app basename (Vela) and branding directory
+# (browser/branding/official) are already configured in browser/confvars.sh
+# and the branding configure.sh files — no need to repeat them here.
+
+# Project / application.
+ac_add_options --enable-project=browser
+
+# Optimisation.
+ac_add_options --enable-optimize=-O2
+ac_add_options --disable-debug
+export RUSTC_OPT_LEVEL=2
+
+# Strip what we don't ship.
+ac_add_options --disable-tests
+
+# Compilation cache.
+ac_add_options --with-ccache=sccache
+
+# Parallelism — let mach decide, the workflow caps via --jobs.
+mk_add_options MOZ_PARALLEL_BUILD=-1
+
+# Auto-clobber if the CLOBBER file changed.
+mk_add_options AUTOCLOBBER=1
+
+# Object directory — keep it inside the source tree so the artifact-upload
+# step can find it easily.
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-vela

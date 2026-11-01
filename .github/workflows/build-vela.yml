@@ -1,0 +1,352 @@
+# Vela — GitHub Actions build workflow.
+#
+# Builds the Vela browser from source on a standard GitHub-hosted Ubuntu
+# runner, packages it, and uploads the result as a downloadable artifact.
+#
+# Why a standard runner is enough:
+#   - The standard ubuntu-22.04/24.04 runner has 4 vCPU, 16 GB RAM, and
+#     ~84 GB of disk (after freeing the preinstalled Android/.NET/Haskell
+#     toolchains that we don't need). Firefox needs ~30 GB free and ~8 GB
+#     RAM minimum. We add a 16 GB swap file to absorb the spike during the
+#     Rust compilation phase, and we cap parallelism at -j2 to stay within
+#     RAM. The result is a complete, real Vela build — not a stub.
+#
+# Build time on a cold cache: ~2h30m–3h30m. With sccache warm: ~30–60m.
+# The 6-hour job timeout leaves comfortable headroom.
+#
+# Triggers:
+#   - workflow_dispatch        (manual "Run workflow" button)
+#   - push to main / tags v*   (auto-build on release tags)
+#   - release (published)      (auto-build when a GitHub release is published)
+#
+# Artifact:
+#   - The packaged browser is uploaded as a workflow artifact named
+#     `vela-browser-linux-x86_64` and is downloadable from the workflow
+#     run's summary page for 90 days.
+
+name: Build Vela
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_build:
+        description: "Build a debug build (slower, larger, with assertions)"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    tags: ["v*"]
+  release:
+    types: [published]
+
+# Cancel any in-flight build for the same ref when a new push lands.
+concurrency:
+  group: build-vela-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Vela (Linux x86_64)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    steps:
+      # ---------------------------------------------------------------- *
+      # 1. Free up disk space on the runner.
+      #
+      #    The ubuntu-22.04 image ships with ~30 GB of preinstalled
+      #    toolchains (Android SDK, .NET, Haskell, multiple JDKs, etc.)
+      #    that Firefox doesn't need. Removing them reclaims enough space
+      #    for the build's ~30 GB working set.
+      # ---------------------------------------------------------------- *
+      - name: Free up disk space on the runner
+        run: |
+          set -eux
+          echo "=== Disk usage before cleanup ==="
+          df -h /
+          sudo df -h /
+
+          # Remove large preinstalled toolchains we don't need.
+          sudo rm -rf \
+            /usr/local/lib/android \
+            /usr/local/.ghcup \
+            /usr/local/share/ghc \
+            /usr/local/share/.ghc \
+            /opt/ghc \
+            /opt/cabal \
+            /opt/haskell \
+            /usr/local/share/openssl \
+            /usr/local/wpm \
+            /usr/local/aws-cli \
+            /usr/local/aws-sam-cli \
+            /usr/lib/firefox \
+            /usr/share/miniconda \
+            /opt/microsoft \
+            /opt/pipx \
+            /usr/share/az_9.3 \
+            /usr/share/az_10 \
+            /usr/share/rust \
+            /usr/local/kotlin \
+            /usr/local/konan \
+            /usr/lib/jvm \
+            /usr/lib/mono \
+            /usr/lib/postgresql \
+            /usr/lib/mysql \
+            /usr/share/swift \
+            /usr/local/graalvm \
+            /usr/local/jvm \
+            /usr/local/share/Chromium \
+            /usr/local/share/chromedriver \
+            /usr/local/share/edge \
+            /usr/local/share/edge-driver \
+            /usr/lib/google-cloud-sdk \
+            /usr/lib/google-cloud-cli \
+            /usr/lib/kubectl \
+            /usr/local/share/phantomjs* \
+            /usr/local/share/vcpkg \
+            2>/dev/null || true
+
+          # Remove Docker images (we don't use Docker for the build).
+          sudo docker image prune -af 2>/dev/null || true
+          sudo docker system prune -af --volumes 2>/dev/null || true
+
+          # Remove apt packages we don't need.
+          sudo apt-get purge -y \
+            azure-cli google-chrome-stable microsoft-edge-stable \
+            firefox postgresql* mysql* dotnet* mono-* \
+            ghc haskell-platform cabal-install \
+            2>/dev/null || true
+          sudo apt-get autoremove -y --purge 2>/dev/null || true
+
+          echo "=== Disk usage after cleanup ==="
+          df -h /
+
+      # ---------------------------------------------------------------- *
+      # 2. Add swap.
+      #
+      #    The runner has 16 GB RAM. Firefox's Rust compilation phase
+      #    can briefly exceed that. A 16 GB swap file prevents OOM kills
+      #    without slowing the build noticeably (only used in bursts).
+      # ---------------------------------------------------------------- *
+      - name: Add 16 GB swap file
+        run: |
+          set -eux
+          sudo fallocate -l 16G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+          swapon --show
+
+      # ---------------------------------------------------------------- *
+      # 3. Check out the repository.
+      # ---------------------------------------------------------------- *
+      - name: Checkout Vela source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ---------------------------------------------------------------- *
+      # 4. Install Mozilla build dependencies.
+      #
+      #    `./mach bootstrap` is Mozilla's official dependency installer.
+      #    It installs Rust, the clang toolchain, Node.js, and all the
+      #    system libraries Firefox needs. We answer "yes" to all
+      #    prompts via `--no-interactive` and pick the Firefox for
+      #    Desktop (browser) project.
+      # ---------------------------------------------------------------- *
+      - name: Install Mozilla build dependencies
+        run: |
+          set -eux
+          # Baseline packages that bootstrap.py expects to be able to find.
+          sudo apt-get update
+          sudo apt-get install -y \
+            curl python3 python3-venv python3-dev git make \
+            pkg-config libdbus-1-dev libdrm-dev \
+            libgtk-3-dev libglib2.0-dev libnss3-dev libnspr4-dev \
+            libasound2-dev libpulse-dev \
+            libx11-xcb-dev libxtst-dev libxrandr-dev \
+            libxss-dev libxcursor-dev libxcomposite-dev \
+            libxdamage-dev libxinerama-dev libxi-dev \
+            libpango1.0-dev libcairo2-dev \
+            libgconf-2-4 libgconf2-dev 2>/dev/null || true
+          # Watchman (file watcher, used by mach).
+          sudo apt-get install -y watchman 2>/dev/null || true
+
+          # Run Mozilla's bootstrap. --no-interactive picks the defaults
+          # suitable for the chosen application; we set MOZ_BOOTSTRAP=1 to
+          # signal non-interactive mode.
+          MOZ_BOOTSTRAP=1 ./mach --no-interactive bootstrap --application-choice browser
+
+      # ---------------------------------------------------------------- *
+      # 5. Configure sccache.
+      #
+      #    sccache caches C/C++/Rust compilations. Combined with the
+      #    actions/cache step below, this turns the second build into a
+      #    30–60 minute job instead of a 3 hour one.
+      # ---------------------------------------------------------------- *
+      - name: Install sccache
+        env:
+          SCCACHE_VERSION: "0.8.2"
+        run: |
+          set -eux
+          ARCH="$(uname -m)"
+          case "$ARCH" in
+            x86_64)  SCCACHE_ARCH="x86_64";;
+            aarch64) SCCACHE_ARCH="aarch64";;
+            *) echo "Unsupported arch: $ARCH"; exit 1;;
+          esac
+          URL="https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-${ARCH}-unknown-linux-musl.tar.gz"
+          curl -fsSL "$URL" | sudo tar -xz --strip-components=1 -C /usr/local/bin sccache-v${SCCACHE_VERSION}-${ARCH}-unknown-linux-musl/sccache
+          sudo chmod +x /usr/local/bin/sccache
+          sccache --version
+          # Start sccache server in background.
+          sccache --start-server || true
+
+      - name: Cache sccache artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/.cache/sccache
+            /home/runner/.cargo/registry
+            /home/runner/.cargo/git
+          key: vela-sccache-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            vela-sccache-${{ runner.os }}-
+
+      # ---------------------------------------------------------------- *
+      # 6. Write the mozconfig.
+      # ---------------------------------------------------------------- *
+      - name: Install Vela mozconfig
+        run: |
+          set -eux
+          cp build/vela/mozconfig mozconfig
+          # For a debug build (manual trigger with debug_build=true), append overrides.
+          if [ "${{ github.event.inputs.debug_build }}" = "true" ]; then
+            {
+              echo ""
+              echo "# Debug overrides (workflow_dispatch with debug_build=true)."
+              echo "ac_add_options --enable-debug"
+              echo "ac_add_options --disable-optimize"
+              echo "unset RUSTC_OPT_LEVEL"
+            } >> mozconfig
+          fi
+          echo "=== mozconfig ==="
+          cat mozconfig
+
+      # ---------------------------------------------------------------- *
+      # 7. Configure.
+      # ---------------------------------------------------------------- *
+      - name: Configure the build
+        run: |
+          set -eux
+          # MOZCONFIG is read by mach; the default is ./mozconfig which we just installed.
+          ./mach configure
+
+      # ---------------------------------------------------------------- *
+      # 8. Build.
+      #
+      #    We cap parallelism at -j3 (4 vCPU minus 1 for the mach/python
+      #    overhead). With 16 GB RAM + 16 GB swap, -j3 is the sweet spot
+      #    for not OOMing while still using the available cores.
+      # ---------------------------------------------------------------- *
+      - name: Build Vela
+        env:
+          SCCACHE_DIRECT: "false"
+          SCCACHE_IDLE_TIMEOUT: "0"
+          RUSTC_WRAPPER: sccache
+          CARGO_INCREMENTAL: "0"
+          MOZ_BUILD_HOOK: ""
+        run: |
+          set -eux
+          ./mach build --jobs 3
+          # Print sccache stats so we can see the cache hit rate in the log.
+          sccache --show-stats || true
+
+      # ---------------------------------------------------------------- *
+      # 9. Package.
+      #
+      #    `./mach package` produces obj-vela/dist/vela-*.tar.bz2 (and a
+      #    vela-*.txt manifest). We'll package the whole dist directory
+      #    so the user gets a runnable browser.
+      # ---------------------------------------------------------------- *
+      - name: Package Vela
+        run: |
+          set -eux
+          ./mach package
+          echo "=== dist directory ==="
+          ls -lh obj-vela/dist/ | head -40
+          echo "=== packaged archives ==="
+          ls -lh obj-vela/dist/*.tar.* obj-vela/dist/*.zip 2>/dev/null || true
+
+      # ---------------------------------------------------------------- *
+      # 10. Stage the artifact.
+      #
+      #     We produce a single tarball containing the runnable browser
+      #     directory (obj-vela/dist/bin/) plus a small README explaining
+      #     how to run it.
+      # ---------------------------------------------------------------- *
+      - name: Stage artifact
+        run: |
+          set -eux
+          STAGE="$RUNNER_TEMP/vela-stage"
+          rm -rf "$STAGE"
+          mkdir -p "$STAGE"
+          # Copy the runnable browser directory.
+          cp -a obj-vela/dist/bin "$STAGE/vela"
+          # Write a run README.
+          cat > "$STAGE/README.txt" <<'EOF'
+          Vela — the calm browser.
+          Built from source by GitHub Actions.
+
+          To run:
+            ./vela/vela                    # launches Vela
+            ./vela/vela --new-tab about:vela   # opens the Vela welcome page
+
+          Vela is a fork of Mozilla Firefox ESR. It preserves full web
+          compatibility and all of Firefox's underlying browser engine.
+
+          For the design document, see docs/vela/DESIGN.md in the source
+          repository.
+          EOF
+          # Tarball it.
+          TAR_NAME="vela-browser-linux-x86_64-$(date -u +%Y%m%d-%H%M)-${GITHUB_SHA::7}.tar.xz"
+          tar -C "$STAGE" -cJf "$RUNNER_TEMP/$TAR_NAME" vela README.txt
+          ls -lh "$RUNNER_TEMP/$TAR_NAME"
+          echo "TAR_NAME=$TAR_NAME" >> "$GITHUB_ENV"
+
+      # ---------------------------------------------------------------- *
+      # 11. Upload the artifact.
+      # ---------------------------------------------------------------- *
+      - name: Upload Vela artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-browser-linux-x86_64
+          path: ${{ runner.temp }}/${{ env.TAR_NAME }}
+          retention-days: 90
+          compression-level: 0  # already xz-compressed
+
+      # ---------------------------------------------------------------- *
+      # 12. Diagnostics on failure.
+      # ---------------------------------------------------------------- *
+      - name: Diagnostics — config.log tail
+        if: failure()
+        run: |
+          echo "=== tail of obj-vela/config.log ==="
+          tail -200 obj-vela/config.log 2>/dev/null || echo "(no config.log)"
+          echo "=== disk usage at failure ==="
+          df -h /
+          echo "=== memory at failure ==="
+          free -h
+          echo "=== sccache stats ==="
+          sccache --show-stats 2>/dev/null || true
+
+      - name: Diagnostics — upload full build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-build-logs-failure
+          path: |
+            obj-vela/config.log
+            obj-vela/mozinfo.json
+          retention-days: 14
+          if-no-files-found: ignore
