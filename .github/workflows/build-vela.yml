@@ -316,7 +316,9 @@ jobs:
       #
       #     We produce a single tarball containing the runnable browser
       #     directory (obj-vela/dist/bin/) plus a small README explaining
-      #     how to run it.
+      #     how to run it. We also run `ldd` on the binary to detect any
+      #     missing shared libraries and write a dependencies.txt listing
+      #     the apt packages the user needs installed.
       # ---------------------------------------------------------------- *
       - name: Stage artifact
         run: |
@@ -326,24 +328,93 @@ jobs:
           mkdir -p "$STAGE"
           # Copy the runnable browser directory.
           cp -a obj-vela/dist/bin "$STAGE/vela"
-          # Write a run README.
+
+          # Run ldd on the main binary and on libxul.so to detect any
+          # missing / not-found dependencies. This catches packaging
+          # problems before the user hits "Couldn't load XPCOM".
+          echo "=== ldd vela ===" > "$STAGE/dependencies.txt"
+          ldd "$STAGE/vela/vela" >> "$STAGE/dependencies.txt" 2>&1 || true
+          echo "" >> "$STAGE/dependencies.txt"
+          echo "=== ldd libxul.so ===" >> "$STAGE/dependencies.txt"
+          ldd "$STAGE/vela/libxul.so" >> "$STAGE/dependencies.txt" 2>&1 || true
+          echo "" >> "$STAGE/dependencies.txt"
+
+          # Check for any "not found" entries — those are the missing libs
+          # that would cause "Couldn't load XPCOM" on the user's machine.
+          MISSING=$(grep "not found" "$STAGE/dependencies.txt" || true)
+          if [ -n "$MISSING" ]; then
+            echo "WARNING: Missing libraries detected:"
+            echo "$MISSING"
+          fi
+
+          # Write the run README with system-dependency instructions.
           cat > "$STAGE/README.txt" <<'EOF'
           Vela — the calm browser.
           Built from source by GitHub Actions.
 
-          To run:
-            ./vela/vela                    # launches Vela
-            ./vela/vela --new-tab about:vela   # opens the Vela welcome page
+          ─────────────────────────────────────────────────────────────
+          TO RUN
+          ─────────────────────────────────────────────────────────────
+
+            ./vela/vela                          # launches Vela
+            ./vela/vela --new-tab about:vela     # opens the Vela welcome page
+
+          ─────────────────────────────────────────────────────────────
+          IF YOU GET "Couldn't load XPCOM"
+          ─────────────────────────────────────────────────────────────
+
+          That error means Vela can't find a system library it needs.
+          Install the runtime dependencies:
+
+            # Ubuntu / Debian:
+            sudo apt update
+            sudo apt install -y \
+              libgtk-3-0 libdbus-glib-1-2 libxt6 libasound2 \
+              libnss3 libstdc++6 libgcc-s1 \
+              libpango-1.0-0 libcairo2 libfreetype6 libfontconfig1 \
+              libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxdamage1 \
+              libxext6 libxfixes3 libxrandr2 libxrender1 libxtst6 \
+              libglib2.0-0 libatk1.0-0 libatk-bridge2.0-0 libepoxy0 \
+              libwayland-client0 libwayland-server0 libgbm1
+
+            # Fedora / RHEL:
+            sudo dnf install -y \
+              gtk3 dbus-glib libXt alsa-lib nss stdc++-static \
+              pango cairo freetype fontconfig \
+              libX11 libX11-xcb libxcb libXcomposite libXdamage \
+              libXext libXfixes libXrandr libXrender libXtst \
+              glib2 atk at-spi2-atk libepoxy wayland wayland-protocols \
+              mesa-libgbm
+
+          On newer Ubuntu (24.04+), the package is `libasound2t64`
+          instead of `libasound2`.
+
+          See `dependencies.txt` in this archive for the full ldd output
+          from the build machine.
+
+          ─────────────────────────────────────────────────────────────
+          ABOUT VELA
+          ─────────────────────────────────────────────────────────────
 
           Vela is a fork of Mozilla Firefox ESR. It preserves full web
           compatibility and all of Firefox's underlying browser engine.
 
-          For the design document, see docs/vela/DESIGN.md in the source
-          repository.
+          Original features (keyboard shortcuts):
+            Ctrl+Shift+F       Focus Mode — hide all chrome
+            Ctrl+Alt+H         Harbor sidebar — bookmarks/history/downloads/reading list/notes
+            Ctrl+Shift+G       New Tide — collapsible tab group
+            Ctrl+Alt+R         Sepia Reader — warm sepia tint with typography controls
+            Ctrl+Alt+W         Workspaces — saved tab sessions
+            Ctrl+Alt+Shift+L   Add to Reading List
+            Ctrl+Alt+V         About Vela — settings hub
+
+          For the full design document, see docs/vela/DESIGN.md in the
+          source repository:
+          https://github.com/MagicDippyEgg/firefox-browser-esr-z.ai
           EOF
           # Tarball it.
           TAR_NAME="vela-browser-linux-x86_64-$(date -u +%Y%m%d-%H%M)-${GITHUB_SHA::7}.tar.xz"
-          tar -C "$STAGE" -cJf "$RUNNER_TEMP/$TAR_NAME" vela README.txt
+          tar -C "$STAGE" -cJf "$RUNNER_TEMP/$TAR_NAME" vela README.txt dependencies.txt
           ls -lh "$RUNNER_TEMP/$TAR_NAME"
           echo "TAR_NAME=$TAR_NAME" >> "$GITHUB_ENV"
 
