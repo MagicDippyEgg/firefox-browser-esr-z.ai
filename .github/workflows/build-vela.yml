@@ -314,11 +314,17 @@ jobs:
       # ---------------------------------------------------------------- *
       # 10. Stage the artifact.
       #
-      #     We produce a single tarball containing the runnable browser
-      #     directory (obj-vela/dist/bin/) plus a small README explaining
-      #     how to run it. We also run `ldd` on the binary to detect any
-      #     missing shared libraries and write a dependencies.txt listing
-      #     the apt packages the user needs installed.
+      #     `./mach package` produces a properly-packaged tarball at
+      #     obj-vela/dist/vela-<version>.en-US.linux-x86_64.tar.xz that
+      #     contains REAL FILES (not build-tree symlinks). We extract
+      #     that tarball into the staging directory, add a README and
+      #     a dependencies.txt, then re-tar.
+      #
+      #     IMPORTANT: do NOT copy obj-vela/dist/bin directly — that
+      #     directory is the build tree and is full of symlinks pointing
+      #     to /home/runner/work/... source paths that don't exist on
+      #     the user's machine. Those dangling symlinks cause
+      #     "Couldn't load XPCOM" at startup.
       # ---------------------------------------------------------------- *
       - name: Stage artifact
         run: |
@@ -326,24 +332,55 @@ jobs:
           STAGE="$RUNNER_TEMP/vela-stage"
           rm -rf "$STAGE"
           mkdir -p "$STAGE"
-          # Copy the runnable browser directory.
-          cp -a obj-vela/dist/bin "$STAGE/vela"
+
+          # Find the packaged tarball produced by `./mach package`.
+          # It's named like vela-<version>.en-US.linux-x86_64.tar.xz
+          # and contains REAL FILES (not build-tree symlinks).
+          PKG_TARBALL=$(ls obj-vela/dist/vela-*.en-US.linux-x86_64.tar.xz | head -1)
+          echo "Packaged tarball: $PKG_TARBALL"
+          ls -lh "$PKG_TARBALL"
+
+          # Extract the packaged tarball into the staging directory.
+          # This gives us a self-contained `vela/` directory with real
+          # files — no dangling symlinks.
+          tar -C "$STAGE" -xf "$PKG_TARBALL"
+
+          # CRITICAL: verify there are no dangling symlinks. The build
+          # tree (dist/bin) has thousands of symlinks pointing to source
+          # paths that don't exist on the user's machine. The packaged
+          # tarball should have real files. If we see dangling symlinks
+          # here, something is wrong with the packaging.
+          echo "=== Checking for dangling symlinks ==="
+          DANGLING_COUNT=$(find "$STAGE/vela" -type l ! -exec test -e {} \; -print | wc -l)
+          if [ "$DANGLING_COUNT" -gt 0 ]; then
+            echo "ERROR: $DANGLING_COUNT dangling symlinks found in packaged tarball!"
+            find "$STAGE/vela" -type l ! -exec test -e {} \; -print | head -10
+            echo "This should not happen — ./mach package should produce real files."
+            exit 1
+          fi
+          echo "OK: no dangling symlinks."
 
           # Run ldd on the main binary and on libxul.so to detect any
-          # missing / not-found dependencies. This catches packaging
-          # problems before the user hits "Couldn't load XPCOM".
-          echo "=== ldd vela ===" > "$STAGE/dependencies.txt"
+          # missing / not-found dependencies on the BUILD machine. This
+          # is informational — the user's machine may have different
+          # packages installed.
+          echo "=== ldd vela (build machine) ===" > "$STAGE/dependencies.txt"
           ldd "$STAGE/vela/vela" >> "$STAGE/dependencies.txt" 2>&1 || true
           echo "" >> "$STAGE/dependencies.txt"
-          echo "=== ldd libxul.so ===" >> "$STAGE/dependencies.txt"
+          echo "=== ldd libxul.so (build machine) ===" >> "$STAGE/dependencies.txt"
           ldd "$STAGE/vela/libxul.so" >> "$STAGE/dependencies.txt" 2>&1 || true
           echo "" >> "$STAGE/dependencies.txt"
+          echo "=== NEEDED entries (objdump -p vela) ===" >> "$STAGE/dependencies.txt"
+          objdump -p "$STAGE/vela/vela" | grep NEEDED >> "$STAGE/dependencies.txt" 2>&1 || true
+          echo "" >> "$STAGE/dependencies.txt"
+          echo "=== NEEDED entries (objdump -p libxul.so) ===" >> "$STAGE/dependencies.txt"
+          objdump -p "$STAGE/vela/libxul.so" | grep NEEDED >> "$STAGE/dependencies.txt" 2>&1 || true
 
           # Check for any "not found" entries — those are the missing libs
           # that would cause "Couldn't load XPCOM" on the user's machine.
           MISSING=$(grep "not found" "$STAGE/dependencies.txt" || true)
           if [ -n "$MISSING" ]; then
-            echo "WARNING: Missing libraries detected:"
+            echo "WARNING: Missing libraries detected on build machine:"
             echo "$MISSING"
           fi
 
@@ -379,12 +416,11 @@ jobs:
 
             # Fedora / RHEL:
             sudo dnf install -y \
-              gtk3 dbus-glib libXt alsa-lib nss stdc++-static \
+              gtk3 dbus-glib libXt alsa-lib nss \
               pango cairo freetype fontconfig \
               libX11 libX11-xcb libxcb libXcomposite libXdamage \
               libXext libXfixes libXrandr libXrender libXtst \
-              glib2 atk at-spi2-atk libepoxy wayland wayland-protocols \
-              mesa-libgbm
+              glib2 atk at-spi2-atk libepoxy mesa-libgbm
 
           On newer Ubuntu (24.04+), the package is `libasound2t64`
           instead of `libasound2`.
