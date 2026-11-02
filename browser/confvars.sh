@@ -13,6 +13,11 @@
 
 MOZ_APP_BASENAME=Vela
 MOZ_APP_NAME=vela
+# The User-Agent app token. When set, this appears as "Vela/<version>" in
+# the UA string alongside the "Firefox/<version>" compat token (enabled via
+# general.useragent.compatMode.firefox in firefox.js). Together they give:
+#   Mozilla/5.0 (...) Gecko/... Firefox/<ver> Vela/<ver>
+MOZ_APP_UA_NAME=Vela
 
 # MOZ_BRANDING_DIRECTORY is the default branding directory used when none is
 # specified. It should never point to the "official" branding directory.

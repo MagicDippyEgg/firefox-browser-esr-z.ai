@@ -130,29 +130,32 @@ body::before {
 /* ------------------------------------------------------------------ *
  * The Vela wordmark on the new tab page
  * ------------------------------------------------------------------ */
-.logo {
-  background-image: none !important;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
+.logo,
+.logo-and-wordmark .logo {
+  background-image: url("chrome://branding/content/about-logo.svg") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+  background-color: var(--vela-paper) !important;
+  display: block !important;
   height: 80px !important;
   width: 80px !important;
   margin: 0 auto 16px !important;
-  background-color: var(--vela-paper) !important;
   border-radius: var(--vela-radius-lg) !important;
   box-shadow: var(--vela-shadow-2);
   position: relative;
 }
 
-/* Inject a small Vela sail glyph into the logo area */
-.logo::after {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  background-image: url("chrome://branding/content/about-wordmark.svg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+/* Hide the old Firefox logo background (the activity-stream CSS sets it
+   to chrome://branding/content/about-logo.svg — we override above). */
+.logo-and-wordmark {
+  margin-bottom: 0 !important;
+}
+
+/* If the React bundle renders a separate wordmark element, hide it —
+   Vela's logo SVG already includes the sail mark. */
+.logo-and-wordmark .wordmark {
+  display: none !important;
 }
 
 /* ------------------------------------------------------------------ *

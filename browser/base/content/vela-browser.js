@@ -368,6 +368,175 @@ var VelaBrowser = {
     gBrowser.selectedTab = gBrowser.addTab("about:vela");
   },
 
+  /* ----- Duplicate Tab — Ctrl+Shift+D ------------------------------- */
+
+  /**
+   * Duplicates the current tab — opens a new tab with the same URL and
+   * history, right next to the current one.
+   */
+  duplicateTab() {
+    if (!gBrowser) return;
+    const tab = gBrowser.selectedTab;
+    if (!tab) return;
+    try {
+      // duplicateTab returns the new tab; it's placed after the original.
+      gBrowser.duplicateTab(tab);
+    } catch (e) {
+      console.warn("Vela: could not duplicate tab", e);
+    }
+  },
+
+  /* ----- Calm Tabs — dim inactive tabs for focus --------------------- */
+
+  /**
+   * Calm Tabs dims all tabs except the selected one, making it easier
+   * to focus on the current page. Toggled by Ctrl+Alt+C.
+   *
+   * Implemented by setting a [vela-calm-tabs] attribute on the
+   * document root; vela-theme.css then applies opacity to non-selected
+   * tabs when the attribute is present.
+   */
+  _calmTabsActive: false,
+
+  toggleCalmTabs() {
+    this._calmTabsActive = !this._calmTabsActive;
+    document.documentElement.setAttribute(
+      "vela-calm-tabs",
+      this._calmTabsActive ? "true" : "false"
+    );
+    Services.prefs.setBoolPref("vela.calm-tabs.active", this._calmTabsActive);
+  },
+
+  _initCalmTabs() {
+    try {
+      this._calmTabsActive = Services.prefs.getBoolPref(
+        "vela.calm-tabs.active",
+        false
+      );
+      if (this._calmTabsActive) {
+        document.documentElement.setAttribute("vela-calm-tabs", "true");
+      }
+    } catch (e) {
+      console.warn("Vela: calm-tabs init failed", e);
+    }
+  },
+
+  /* ----- Pin Tab — Ctrl+Alt+P --------------------------------------- */
+
+  /**
+   * Toggles the pinned state of the current tab. Pinned tabs are
+   * shrunk to their favicon and moved to the left side of the tab
+   * strip — useful for keeping mail, calendar, or music players
+   * always accessible.
+   */
+  pinTab() {
+    if (!gBrowser) return;
+    const tab = gBrowser.selectedTab;
+    if (!tab) return;
+    try {
+      if (tab.pinned) {
+        gBrowser.unpinTab(tab);
+      } else {
+        gBrowser.pinTab(tab);
+      }
+    } catch (e) {
+      console.warn("Vela: could not toggle pin", e);
+    }
+  },
+
+  /* ----- Tab Overview — Ctrl+Alt+O ---------------------------------- */
+
+  /**
+   * Tab Overview opens a panel showing all open tabs grouped by
+   * domain. Clicking a tab switches to it. This is a quick way to
+   * find a tab when you have many open.
+   *
+   * Implemented as a simple panel injected into the browser chrome.
+   */
+  tabOverview() {
+    if (!gBrowser) return;
+    let panel = document.getElementById("vela-tab-overview-panel");
+    if (!panel) {
+      panel = this._buildTabOverviewPanel();
+      document.documentElement.appendChild(panel);
+    }
+    this._refreshTabOverview();
+    panel.openPopup(
+      document.getElementById("PanelUI-menu-button") || document.documentElement,
+      "after_start",
+      0,
+      0,
+      false,
+      false
+    );
+  },
+
+  _buildTabOverviewPanel() {
+    const panel = document.createXULElement("panel");
+    panel.id = "vela-tab-overview-panel";
+    panel.setAttribute("type", "arrow");
+    panel.setAttribute("flip", "both");
+    panel.setAttribute("noautofocus", "true");
+    panel.setAttribute("norolluponanchor", "true");
+    panel.setAttribute("level", "parent");
+    panel.style.width = "400px";
+    panel.style.maxHeight = "500px";
+
+    const container = document.createXULElement("vbox");
+    container.id = "vela-tab-overview-container";
+    container.style.overflow = "auto";
+    container.style.maxHeight = "480px";
+    panel.appendChild(container);
+
+    panel.addEventListener("popupshowing", () => this._refreshTabOverview());
+    return panel;
+  },
+
+  _refreshTabOverview() {
+    const container = document.getElementById("vela-tab-overview-container");
+    if (!container || !gBrowser) return;
+    container.innerHTML = "";
+
+    // Group tabs by domain.
+    const groups = new Map();
+    for (const tab of gBrowser.tabs) {
+      const browser = gBrowser.getBrowserForTab(tab);
+      if (!browser) continue;
+      let host;
+      try {
+        host = browser.currentURI?.host || browser.currentURI?.spec || "(no host)";
+        if (host.length > 40) host = host.slice(0, 40) + "…";
+      } catch (e) {
+        host = "(internal)";
+      }
+      if (!groups.has(host)) groups.set(host, []);
+      groups.get(host).push({ tab, title: tab.label || host, host });
+    }
+
+    // Render groups.
+    for (const [host, tabs] of groups) {
+      const heading = document.createXULElement("label");
+      heading.textContent = `${host} (${tabs.length})`;
+      heading.style.cssText = "font-weight:600;font-size:11px;color:var(--vela-accent,#C8553D);padding:8px 12px 4px;text-transform:uppercase;letter-spacing:0.06em;";
+      container.appendChild(heading);
+
+      for (const { tab, title } of tabs) {
+        const item = document.createXULElement("toolbarbutton");
+        item.className = "vela-tab-overview-item";
+        item.setAttribute("label", title);
+        if (tab === gBrowser.selectedTab) {
+          item.setAttribute("selected", "true");
+        }
+        item.style.cssText = "padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;";
+        item.addEventListener("command", () => {
+          gBrowser.selectedTab = tab;
+          document.getElementById("vela-tab-overview-panel")?.hidePopup();
+        });
+        container.appendChild(item);
+      }
+    }
+  },
+
   /* ----- Reading List ------------------------------------------------- */
 
   /**
@@ -559,6 +728,13 @@ var VelaBrowser = {
       this.initFocusMode();
     } catch (e) {
       console.warn("Vela: focus-mode init failed", e);
+    }
+
+    // Restore calm tabs state.
+    try {
+      this._initCalmTabs();
+    } catch (e) {
+      console.warn("Vela: calm-tabs init failed", e);
     }
 
     // Wire up the Escape key to exit focus mode.

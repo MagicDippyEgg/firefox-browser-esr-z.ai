@@ -345,6 +345,12 @@ jobs:
           # files — no dangling symlinks.
           tar -C "$STAGE" -xf "$PKG_TARBALL"
 
+          # Copy the installer script and .desktop file into the staging
+          # directory so users can install Vela system-wide.
+          cp build/vela/install.sh "$STAGE/install.sh"
+          chmod +x "$STAGE/install.sh"
+          cp build/vela/vela.desktop "$STAGE/vela.desktop"
+
           # CRITICAL: verify there are no dangling symlinks. The build
           # tree (dist/bin) has thousands of symlinks pointing to source
           # paths that don't exist on the user's machine. The packaged
@@ -450,7 +456,7 @@ jobs:
           EOF
           # Tarball it.
           TAR_NAME="vela-browser-linux-x86_64-$(date -u +%Y%m%d-%H%M)-${GITHUB_SHA::7}.tar.xz"
-          tar -C "$STAGE" -cJf "$RUNNER_TEMP/$TAR_NAME" vela README.txt dependencies.txt
+          tar -C "$STAGE" -cJf "$RUNNER_TEMP/$TAR_NAME" vela README.txt dependencies.txt install.sh vela.desktop
           ls -lh "$RUNNER_TEMP/$TAR_NAME"
           echo "TAR_NAME=$TAR_NAME" >> "$GITHUB_ENV"
 

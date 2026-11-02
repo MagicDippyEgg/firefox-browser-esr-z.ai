@@ -3701,12 +3701,30 @@ pref("general.smoothScroll.mouseWheel.durationMinMS", 200);
 pref("general.smoothScroll.scrollbars.durationMaxMS", 300);
 pref("general.smoothScroll.scrollbars.durationMinMS", 150);
 
+// Vela — User-Agent identity.
+//
+// Vela's UA string is: Mozilla/5.0 (...) Gecko/... Firefox/<ver> Vela/<ver>
+//
+// The "Firefox/" compat token is essential: without it, browser-detection
+// scripts on major websites (Google, GitHub, banks, etc.) don't recognise
+// the browser and may block features or show "Unsupported browser" /
+// "Default Browser" errors. With it, Vela gets full Firefox compatibility
+// while still identifying itself distinctly via the "Vela/<ver>" token.
+//
+// general.useragent.compatMode.firefox is not set by default in the Mozilla
+// tree (it's only set when MOZ_APP_UA_NAME == "Firefox"). We set it here
+// so Vela always includes the Firefox compat token.
+pref("general.useragent.compatMode.firefox", true);
+
 // Feature toggles — let users disable any Vela feature without affecting
 // the rest of the browser.
 pref("vela.feature.focus-mode.enabled", true);
 pref("vela.feature.harbor.enabled", true);
 pref("vela.feature.tides.enabled", true);
 pref("vela.feature.sepia-reader.enabled", true);
+
+// Calm Tabs — dim inactive tabs for focus (Ctrl+Alt+C).
+pref("vela.calm-tabs.active", false);
 
 // The default homepage. Vela keeps Firefox's about:home, which now serves
 // the Calm New Tab dashboard.

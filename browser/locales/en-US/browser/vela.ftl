@@ -45,6 +45,10 @@ vela-menu-sepia-reader = Sepia Reader
 vela-menu-about-vela = About Vela
 vela-menu-workspaces = Workspaces
 vela-menu-add-to-reading-list = Add to Reading List
+vela-menu-duplicate-tab = Duplicate Tab
+vela-menu-calm-tabs = Calm Tabs
+vela-menu-pin-tab = Pin / Unpin Tab
+vela-menu-tab-overview = Tab Overview
 
 ## Workspaces
 

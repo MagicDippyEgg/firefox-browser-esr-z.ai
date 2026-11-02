@@ -142,6 +142,18 @@ document.addEventListener(
           case "Vela:AddToReadingList":
             VelaBrowser.addToReadingList();
             break;
+          case "Vela:DuplicateTab":
+            VelaBrowser.duplicateTab();
+            break;
+          case "Vela:CalmTabs":
+            VelaBrowser.toggleCalmTabs();
+            break;
+          case "Vela:PinTab":
+            VelaBrowser.pinTab();
+            break;
+          case "Vela:TabOverview":
+            VelaBrowser.tabOverview();
+            break;
           case "cmd_find":
             gLazyFindCommand("onFindCommand");
             break;

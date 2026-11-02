@@ -1175,3 +1175,66 @@ tooltip {
   background-color: var(--vela-accent);
   color: var(--vela-accent-text);
 }
+
+/* ------------------------------------------------------------------ *
+ * Calm Tabs — dim inactive tabs for focus
+ * Activated by setting [vela-calm-tabs="true"] on :root.
+ * ------------------------------------------------------------------ */
+:root[vela-calm-tabs="true"] .tabbrowser-tab:not([selected]):not([multiselected]) {
+  opacity: 0.35;
+  transition: opacity 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[vela-calm-tabs="true"] .tabbrowser-tab:not([selected]):not([multiselected]):hover {
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------------ *
+ * Pinned tabs — Vela styling
+ * ------------------------------------------------------------------ */
+.tabbrowser-tab[pinned] {
+  max-width: 36px;
+  min-width: 36px;
+}
+
+.tabbrowser-tab[pinned] .tab-label-container {
+  display: none;
+}
+
+.tabbrowser-tab[pinned] .tab-close-button {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tab Overview panel — grouped-by-domain tab switcher
+ * ------------------------------------------------------------------ */
+#vela-tab-overview-panel {
+  --panel-background: var(--vela-surface-card);
+  --panel-color: var(--vela-text);
+  --panel-border-color: var(--vela-divider);
+  --panel-border-radius: var(--vela-radius-lg);
+  --panel-shadow: var(--vela-shadow-3);
+}
+
+#vela-tab-overview-container {
+  padding: 4px;
+}
+
+.vela-tab-overview-item {
+  border-radius: var(--vela-radius-sm);
+  padding: 4px 12px;
+  margin: 1px 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--vela-text);
+  transition: background-color var(--vela-duration-fast) var(--vela-ease-out);
+}
+
+.vela-tab-overview-item:hover {
+  background-color: var(--vela-accent-tint);
+}
+
+.vela-tab-overview-item[selected] {
+  font-weight: 600;
+  color: var(--vela-accent);
+}
