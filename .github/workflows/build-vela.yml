@@ -242,6 +242,31 @@ jobs:
           cat mozconfig
 
       # ---------------------------------------------------------------- *
+      # 6b. Fetch the Breakpad linux_syscall_support.h header.
+      #
+      #     Breakpad's memory_allocator.h (used by both the crashreporter
+      #     and the Gecko profiler) #includes "third_party/lss/linux_syscall_support.h".
+      #     Mozilla's bootstrap is supposed to fetch this header but
+      #     frequently doesn't on CI. We fetch it directly from Google's
+      #     chromium.googlesource.com/linux-syscall-support repo (the
+      #     official source) as a single base64-encoded file and decode it.
+      # ---------------------------------------------------------------- *
+      - name: Fetch Breakpad linux_syscall_support.h
+        run: |
+          set -eux
+          LSS_DIR="toolkit/crashreporter/google-breakpad/src/third_party/lss"
+          mkdir -p "$LSS_DIR"
+          # Google's official linux-syscall-support repo. The file is at
+          # the repo root (not in lss/). googlesource returns base64 when
+          # ?format=TEXT is appended.
+          curl -fsSL "https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/main/linux_syscall_support.h?format=TEXT" \
+            | base64 -d > "$LSS_DIR/linux_syscall_support.h"
+          echo "Fetched linux_syscall_support.h:"
+          ls -la "$LSS_DIR/linux_syscall_support.h"
+          echo "First 5 lines:"
+          head -5 "$LSS_DIR/linux_syscall_support.h"
+
+      # ---------------------------------------------------------------- *
       # 7. Configure.
       # ---------------------------------------------------------------- *
       - name: Configure the build

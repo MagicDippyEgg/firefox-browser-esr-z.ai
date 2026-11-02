@@ -48,6 +48,11 @@ ac_add_options --disable-tests
 # CI. Vela doesn't send crash reports to Mozilla, so we lose nothing by
 # disabling it.
 ac_add_options --disable-crashreporter
+# Disable the Gecko profiler — it also depends on Breakpad's
+# linux_syscall_support.h via memory_allocator.h. The profiler is a
+# developer tool (used via about:profiling), not needed in a distribution
+# build.
+ac_add_options --disable-profiling
 # Disable the software updater — Vela is distributed via GitHub releases,
 # not Mozilla's update servers.
 ac_add_options --disable-updater
