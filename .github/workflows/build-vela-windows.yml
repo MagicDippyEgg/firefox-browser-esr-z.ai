@@ -227,11 +227,13 @@ jobs:
           ) > build-vela.sh
           echo === Build script contents ===
           type build-vela.sh
-          echo === Checking MozillaBuild layout ===
-          dir C:\mozilla-build
+          echo === Finding bash.exe ===
+          dir /s /b C:\mozilla-build\msys2\bin\bash.exe 2>nul
+          dir /s /b C:\mozilla-build\msys2\usr\bin\bash.exe 2>nul
           echo === Running mach bootstrap, configure, and build ===
-          set PATH=C:\sccache;%PATH%
-          C:\mozilla-build\start-shell.bat /c "cd /d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai && bash build-vela.sh"
+          set PATH=C:\sccache;C:\mozilla-build\python3;C:\mozilla-build\bin;C:\mozilla-build\msys2\bin;C:\mozilla-build\msys2\usr\bin;%PATH%
+          set MSYSTEM=MINGW64
+          "C:\mozilla-build\msys2\usr\bin\bash.exe" --login -c "cd /d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai && bash build-vela.sh"
 
       # ---------------------------------------------------------------- *
       # 8. Diagnostics on failure.
