@@ -206,7 +206,7 @@ jobs:
       #    via start-shell.bat to avoid cmd/bash quoting issues.
       # ---------------------------------------------------------------- *
       - name: Bootstrap and build Vela
-        shell: pwsh
+        shell: cmd
         env:
           SCCACHE_DIRECT: "false"
           SCCACHE_IDLE_TIMEOUT: "0"
@@ -214,32 +214,24 @@ jobs:
           CARGO_INCREMENTAL: "0"
           SCCACHE_DIR: 'D:\sccache-cache'
         run: |
-          Write-Host "=== Writing build script ==="
-          # Convert the Windows workspace path to an MSYS2 path.
-          # D:\a\repo\repo -> /d/a/repo/repo
-          $winPath = $env:GITHUB_WORKSPACE
-          $msysPath = "/" + $winPath.Substring(0,1).ToLower() + $winPath.Substring(2).Replace('\','/')
-          Write-Host "Windows path: $winPath"
-          Write-Host "MSYS2 path: $msysPath"
-
-          $script = @"
-          #!/bin/bash
-          set -ex
-          cd "$msysPath"
-          echo "Working directory: $(pwd)"
-          ./mach --no-interactive bootstrap --application-choice browser
-          ./mach configure
-          ./mach build --jobs 3
-          ./mach package
-          "@
-          Set-Content -Path build-vela.sh -Value $script -Encoding ASCII
-          Write-Host "=== Build script contents ==="
-          Get-Content build-vela.sh
-          Write-Host "=== Running mach bootstrap, configure, and build ==="
-          # Use MozillaBuild's bash.exe directly with --login so it reads
-          # the MSYS2 profile and sets up the environment correctly.
-          $env:PATH = "C:\sccache;C:\mozilla-build\msys\bin;C:\mozilla-build\python3;C:\mozilla-build\bin;" + $env:PATH
-          & "C:\mozilla-build\msys\bin\bash.exe" --login -c "cd '$msysPath' && bash build-vela.sh"
+          echo === Writing build script ===
+          (
+            echo #!/bin/bash
+            echo set -ex
+            echo cd "/d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai"
+            echo echo "Working directory: $(pwd)"
+            echo ./mach --no-interactive bootstrap --application-choice browser
+            echo ./mach configure
+            echo ./mach build --jobs 3
+            echo ./mach package
+          ) > build-vela.sh
+          echo === Build script contents ===
+          type build-vela.sh
+          echo === Checking MozillaBuild layout ===
+          dir C:\mozilla-build
+          echo === Running mach bootstrap, configure, and build ===
+          set PATH=C:\sccache;%PATH%
+          C:\mozilla-build\start-shell.bat /c "cd /d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai && bash build-vela.sh"
 
       # ---------------------------------------------------------------- *
       # 8. Diagnostics on failure.
