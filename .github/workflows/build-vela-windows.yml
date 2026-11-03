@@ -215,13 +215,17 @@ jobs:
           SCCACHE_DIR: 'D:\sccache-cache'
         run: |
           Write-Host "=== Writing build script ==="
-          # The build script runs inside MozillaBuild's bash (MSYS2).
-          # $GITHUB_WORKSPACE is a Windows path (D:\a\...); MSYS2 bash
-          # can cd to Windows paths directly.
+          # Convert the Windows workspace path to an MSYS2 path.
+          # D:\a\repo\repo -> /d/a/repo/repo
+          $winPath = $env:GITHUB_WORKSPACE
+          $msysPath = "/" + $winPath.Substring(0,1).ToLower() + $winPath.Substring(2).Replace('\','/')
+          Write-Host "Windows path: $winPath"
+          Write-Host "MSYS2 path: $msysPath"
+
           $script = @"
           #!/bin/bash
           set -ex
-          cd "$env:GITHUB_WORKSPACE"
+          cd "$msysPath"
           echo "Working directory: $(pwd)"
           ./mach --no-interactive bootstrap --application-choice browser
           ./mach configure
@@ -232,11 +236,10 @@ jobs:
           Write-Host "=== Build script contents ==="
           Get-Content build-vela.sh
           Write-Host "=== Running mach bootstrap, configure, and build ==="
-          # start-shell.bat runs the script in the MSYS2 bash environment.
-          # The PATH for sccache is set via the env above + MozillaBuild's
-          # default PATH which includes /c/mozilla-build/python3 etc.
-          $env:PATH = "C:\sccache;" + $env:PATH
-          & "C:\mozilla-build\start-shell.bat" "build-vela.sh"
+          # Use MozillaBuild's bash.exe directly with --login so it reads
+          # the MSYS2 profile and sets up the environment correctly.
+          $env:PATH = "C:\sccache;C:\mozilla-build\msys\bin;C:\mozilla-build\python3;C:\mozilla-build\bin;" + $env:PATH
+          & "C:\mozilla-build\msys\bin\bash.exe" --login -c "cd '$msysPath' && bash build-vela.sh"
 
       # ---------------------------------------------------------------- *
       # 8. Diagnostics on failure.
