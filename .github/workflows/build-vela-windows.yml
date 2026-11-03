@@ -1,0 +1,316 @@
+# Vela — Windows build workflow.
+#
+# Builds the Vela browser from source on a GitHub-hosted Windows runner,
+# packages it as a portable ZIP, and uploads it as a downloadable artifact.
+#
+# Windows build specifics:
+#   - Uses windows-2022 runner (Visual Studio 2022 + Windows 11 SDK pre-installed).
+#   - Runs inside MozillaBuild's bash shell (start-shell.bat) which provides
+#     the MSYS2 environment Firefox's build system expects.
+#   - ./mach bootstrap installs Rust, clang-cl, and the remaining dependencies.
+#   - Builds with the same mozconfig as Linux, plus Windows-specific flags.
+#   - ./mach package produces a ZIP at obj-vela/dist/vela-*.en-US.win64.zip
+#     which we extract, verify, and re-zip with a README.
+#
+# Build time: ~2-3 hours on a cold cache, ~1-1.5h with sccache warm.
+# The 6-hour job timeout leaves comfortable headroom.
+
+name: Build Vela (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_build:
+        description: "Build a debug build (slower, larger, with assertions)"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - "browser/**"
+      - "build/vela/**"
+      - ".github/workflows/build-vela-windows.yml"
+  release:
+    types: [published]
+
+concurrency:
+  group: build-vela-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Vela (Windows x86_64)
+    runs-on: windows-2022
+    timeout-minutes: 360
+    steps:
+      # ---------------------------------------------------------------- *
+      # 1. Free up disk space.
+      # ---------------------------------------------------------------- *
+      - name: Free up disk space
+        shell: pwsh
+        run: |
+          Write-Host "=== Disk usage before cleanup ==="
+          Get-PSDrive C | Format-Table
+          # Remove large preinstalled toolchains we don't need.
+          $pathsToRemove = @(
+            "C:\Program Files (x86)\Android\android-sdk",
+            "C:\Program Files (x86)\Google\Chrome\Application",
+            "C:\Program Files (x86)\Microsoft\Edge\Application",
+            "C:\Program Files\Haskell Platform",
+            "C:\Program Files\dotnet\sdk",
+            "C:\Program Files\Java",
+            "C:\Program Files\nodejs",
+            "C:\php",
+            "C:\Ruby31-x64",
+            "C:\Strawberry",
+            "C:\ProgramData\chocolatey\lib\gradle",
+            "C:\ProgramData\chocolatey\lib\maven",
+            "C:\ProgramData\chocolatey\lib\miniconda3"
+          )
+          foreach ($p in $pathsToRemove) {
+            if (Test-Path $p) {
+              Write-Host "Removing $p"
+              Remove-Item -Recurse -Force $p -ErrorAction SilentlyContinue
+            }
+          }
+          # Remove Docker images.
+          docker system prune -af 2>$null
+          Write-Host "=== Disk usage after cleanup ==="
+          Get-PSDrive C | Format-Table
+
+      # ---------------------------------------------------------------- *
+      # 2. Check out the repository.
+      # ---------------------------------------------------------------- *
+      - name: Checkout Vela source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ---------------------------------------------------------------- *
+      # 3. Install MozillaBuild.
+      #    Firefox's build system requires the MozillaBuild MSYS2
+      #    environment. We install it to C:\mozilla-build.
+      # ---------------------------------------------------------------- *
+      - name: Install MozillaBuild
+        shell: pwsh
+        run: |
+          Write-Host "Downloading MozillaBuild..."
+          $url = "https://github.com/mozilla/gecko-dev/raw/master/python/mozboot/mozbuild/mozillabuild-install.exe"
+          # Fall back to a known stable release if the above 404s.
+          try {
+            Invoke-WebRequest -Uri $url -OutFile mozillabuild.exe -ErrorAction Stop
+          } catch {
+            $url = "https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe"
+            Invoke-WebRequest -Uri $url -OutFile mozillabuild.exe
+          }
+          Write-Host "Installing MozillaBuild..."
+          Start-Process -FilePath "mozillabuild.exe" -ArgumentList "/S", "/D=C:\mozilla-build" -Wait -NoNewWindow
+          Write-Host "MozillaBuild installed to C:\mozilla-build"
+          Test-Path "C:\mozilla-build\start-shell.bat"
+
+      # ---------------------------------------------------------------- *
+      # 4. Install sccache.
+      # ---------------------------------------------------------------- *
+      - name: Install sccache
+        shell: pwsh
+        run: |
+          $version = "0.8.2"
+          $url = "https://github.com/mozilla/sccache/releases/download/v$version/sccache-v$version-x86_64-pc-windows-msvc.zip"
+          Invoke-WebRequest -Uri $url -OutFile sccache.zip
+          Expand-Archive -Path sccache.zip -DestinationPath C:\sccache -Force
+          $sccacheExe = Get-ChildItem C:\sccache -Recurse -Filter sccache.exe | Select-Object -First 1
+          Copy-Item $sccache.FullName "C:\sccache\sccache.exe" -Force
+          Write-Host "sccache installed at C:\sccache\sccache.exe"
+          & "C:\sccache\sccache.exe" --version
+
+      - name: Cache sccache
+        uses: actions/cache@v4
+        with:
+          path: |
+            D:\sccache-cache
+          key: vela-sccache-win-${{ github.sha }}
+          restore-keys: |
+            vela-sccache-win-
+
+      # ---------------------------------------------------------------- *
+      # 5. Write the Windows mozconfig.
+      # ---------------------------------------------------------------- *
+      - name: Install Vela mozconfig
+        shell: pwsh
+        run: |
+          $mozconfig = @"
+          # Vela — Windows build mozconfig.
+          ac_add_options --enable-project=browser
+          ac_add_options --enable-optimize=-O2
+          ac_add_options --disable-debug
+          export RUSTC_OPT_LEVEL=2
+          ac_add_options --disable-tests
+          ac_add_options --disable-crashreporter
+          ac_add_options --disable-profiling
+          ac_add_options --disable-updater
+          ac_add_options --disable-geckodriver
+          ac_add_options --with-ccache=sccache
+          mk_add_options MOZ_PARALLEL_BUILD=-1
+          mk_add_options AUTOCLOBBER=1
+          mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-vela
+          "@
+          if ("${{ github.event.inputs.debug_build }}" -eq "true") {
+            $mozconfig += "`nac_add_options --enable-debug`nac_add_options --disable-optimize`nunset RUSTC_OPT_LEVEL"
+          }
+          Set-Content -Path mozconfig -Value $mozconfig -Encoding ASCII
+          Write-Host "=== mozconfig ==="
+          Get-Content mozconfig
+
+      # ---------------------------------------------------------------- *
+      # 6. Fetch the Breakpad linux_syscall_support.h header.
+      #    (Not needed on Windows, but harmless — keeps the source tree
+      #    consistent with the Linux build.)
+      # ---------------------------------------------------------------- *
+      - name: Fetch Breakpad lss header
+        shell: bash
+        run: |
+          set -eux
+          LSS_DIR="toolkit/crashreporter/google-breakpad/src/third_party/lss"
+          mkdir -p "$LSS_DIR"
+          curl -fsSL "https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/main/linux_syscall_support.h?format=TEXT" \
+            | base64 -d > "$LSS_DIR/linux_syscall_support.h" || true
+          echo "Fetched lss header (or skipped if unavailable)."
+
+      # ---------------------------------------------------------------- *
+      # 7. Bootstrap + Configure + Build.
+      #
+      #    All three steps run inside the MozillaBuild bash shell, which
+      #    provides the MSYS2 environment Firefox's build system expects.
+      #    We pass the commands via a script file to avoid quoting issues.
+      # ---------------------------------------------------------------- *
+      - name: Bootstrap and build Vela
+        shell: cmd
+        env:
+          SCCACHE_DIRECT: "false"
+          SCCACHE_IDLE_TIMEOUT: "0"
+          RUSTC_WRAPPER: sccache
+          CARGO_INCREMENTAL: "0"
+          SCCACHE_DIR: "D:\\sccache-cache"
+          PATH: "C:\\sccache;C:\\mozilla-build\\msys\\bin;C:\\mozilla-build\\python3;C:\\mozilla-build\\bin;%PATH%"
+        run: |
+          echo === Running mach bootstrap, configure, and build ===
+          C:\mozilla-build\start-shell.bat /c "cd /c/Users/runneradmin/work/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai && ./mach --no-interactive bootstrap --application-choice browser && ./mach configure && ./mach build --jobs 3 && ./mach package"
+
+      # ---------------------------------------------------------------- *
+      # 8. Diagnostics on failure.
+      # ---------------------------------------------------------------- *
+      - name: Diagnostics — config.log tail
+        if: failure()
+        shell: pwsh
+        run: |
+          Write-Host "=== tail of obj-vela/config.log ==="
+          if (Test-Path obj-vela/config.log) {
+            Get-Content obj-vela/config.log -Tail 200
+          } else {
+            Write-Host "(no config.log)"
+          }
+          Write-Host "=== disk usage at failure ==="
+          Get-PSDrive C | Format-Table
+          Write-Host "=== sccache stats ==="
+          & "C:\sccache\sccache.exe" --show-stats 2>$null
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-windows-build-logs-failure
+          path: |
+            obj-vela/config.log
+            obj-vela/mozinfo.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      # ---------------------------------------------------------------- *
+      # 9. Stage the artifact.
+      # ---------------------------------------------------------------- *
+      - name: Stage artifact
+        if: success()
+        shell: pwsh
+        run: |
+          Write-Host "=== dist directory ==="
+          Get-ChildItem obj-vela/dist | Format-Table -AutoSize
+          Write-Host "=== packaged ZIP ==="
+          Get-ChildItem obj-vela/dist/*.zip | Format-Table -AutoSize
+
+          # Find the packaged ZIP produced by mach package.
+          $pkgZip = Get-ChildItem obj-vela/dist/vela-*.en-US.win64.zip | Select-Object -First 1
+          if (-not $pkgZip) {
+            # Fall back to any zip in dist.
+            $pkgZip = Get-ChildItem obj-vela/dist/*.zip | Select-Object -First 1
+          }
+          Write-Host "Packaged ZIP: $($pkgZip.FullName)"
+
+          # Stage directory.
+          $stage = "$env:RUNNER_TEMP\vela-stage"
+          Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $stage | Out-Null
+
+          # Extract the packaged ZIP.
+          Expand-Archive -Path $pkgZip.FullName -DestinationPath $stage -Force
+
+          # Verify no broken symlinks (Windows doesn't really have symlinks
+          # in the ZIP, but check the core files exist).
+          $coreFiles = @("vela.exe", "application.ini", "dependentlibs.list", "libxul.dll")
+          foreach ($f in $coreFiles) {
+            $found = Get-ChildItem $stage -Recurse -Filter $f -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              Write-Host "  OK: $f found at $($found.FullName)"
+            } else {
+              Write-Host "  WARNING: $f not found"
+            }
+          }
+
+          # Write README.
+          $readme = @"
+          Vela — the calm browser.
+          Built from source by GitHub Actions (Windows x86_64).
+
+          TO RUN:
+            vela\vela.exe                          launches Vela
+            vela\vela.exe --new-tab about:vela     opens the Vela welcome page
+
+          This is a portable build — no installation required. Just extract
+          and run vela.exe.
+
+          ABOUT VELA:
+          Vela is a fork of Mozilla Firefox ESR. It preserves full web
+          compatibility and all of Firefox's underlying browser engine.
+
+          Original features (keyboard shortcuts):
+            Ctrl+Shift+F       Focus Mode — hide all chrome
+            Ctrl+Alt+H         Harbor sidebar
+            Ctrl+Shift+G       New Tide — tab group
+            Ctrl+Alt+R         Sepia Reader
+            Ctrl+Alt+W         Workspaces
+            Ctrl+Alt+Shift+L   Add to Reading List
+            Ctrl+Alt+V         About Vela
+            Ctrl+Alt+D         Duplicate Tab
+            Ctrl+Alt+C         Calm Tabs
+            Ctrl+Alt+P         Pin Tab
+            Ctrl+Alt+O         Tab Overview
+          "@
+          Set-Content -Path "$stage\README.txt" -Value $readme -Encoding UTF8
+
+          # Create the final ZIP.
+          $zipName = "vela-browser-windows-x86_64-$(Get-Date -Format 'yyyyMMdd-HHmm')-$($env:GITHUB_SHA.Substring(0,7)).zip"
+          Compress-Archive -Path "$stage\*" -DestinationPath "$env:RUNNER_TEMP\$zipName" -CompressionLevel Optimal
+          Write-Host "=== Final artifact ==="
+          Get-ChildItem "$env:RUNNER_TEMP\$zipName" | Format-Table -AutoSize
+          Write-Host "ZIP_NAME=$zipName" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      # ---------------------------------------------------------------- *
+      # 10. Upload the artifact.
+      # ---------------------------------------------------------------- *
+      - name: Upload Vela artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-browser-windows-x86_64
+          path: ${{ runner.temp }}/${{ env.ZIP_NAME }}
+          retention-days: 90
+          compression-level: 0
