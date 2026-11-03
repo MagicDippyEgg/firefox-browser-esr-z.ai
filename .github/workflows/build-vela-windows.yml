@@ -202,20 +202,41 @@ jobs:
       #
       #    All three steps run inside the MozillaBuild bash shell, which
       #    provides the MSYS2 environment Firefox's build system expects.
-      #    We pass the commands via a script file to avoid quoting issues.
+      #    We write the build commands to a script file and execute it
+      #    via start-shell.bat to avoid cmd/bash quoting issues.
       # ---------------------------------------------------------------- *
       - name: Bootstrap and build Vela
-        shell: cmd
+        shell: pwsh
         env:
           SCCACHE_DIRECT: "false"
           SCCACHE_IDLE_TIMEOUT: "0"
           RUSTC_WRAPPER: sccache
           CARGO_INCREMENTAL: "0"
-          SCCACHE_DIR: "D:\\sccache-cache"
-          PATH: "C:\\sccache;C:\\mozilla-build\\msys\\bin;C:\\mozilla-build\\python3;C:\\mozilla-build\\bin;%PATH%"
+          SCCACHE_DIR: 'D:\sccache-cache'
         run: |
-          echo === Running mach bootstrap, configure, and build ===
-          C:\mozilla-build\start-shell.bat /c "cd /c/Users/runneradmin/work/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai && ./mach --no-interactive bootstrap --application-choice browser && ./mach configure && ./mach build --jobs 3 && ./mach package"
+          Write-Host "=== Writing build script ==="
+          # The build script runs inside MozillaBuild's bash (MSYS2).
+          # $GITHUB_WORKSPACE is a Windows path (D:\a\...); MSYS2 bash
+          # can cd to Windows paths directly.
+          $script = @"
+          #!/bin/bash
+          set -ex
+          cd "$env:GITHUB_WORKSPACE"
+          echo "Working directory: $(pwd)"
+          ./mach --no-interactive bootstrap --application-choice browser
+          ./mach configure
+          ./mach build --jobs 3
+          ./mach package
+          "@
+          Set-Content -Path build-vela.sh -Value $script -Encoding ASCII
+          Write-Host "=== Build script contents ==="
+          Get-Content build-vela.sh
+          Write-Host "=== Running mach bootstrap, configure, and build ==="
+          # start-shell.bat runs the script in the MSYS2 bash environment.
+          # The PATH for sccache is set via the env above + MozillaBuild's
+          # default PATH which includes /c/mozilla-build/python3 etc.
+          $env:PATH = "C:\sccache;" + $env:PATH
+          & "C:\mozilla-build\start-shell.bat" "build-vela.sh"
 
       # ---------------------------------------------------------------- *
       # 8. Diagnostics on failure.
