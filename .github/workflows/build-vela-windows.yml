@@ -218,8 +218,12 @@ jobs:
           (
             echo #!/bin/bash
             echo set -ex
+            echo # Add MozillaBuild's python3 to PATH so mach can find it.
+            echo export PATH="/c/mozilla-build/python3:/c/mozilla-build/bin:/c/sccache:$PATH"
             echo cd "/d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai"
             echo echo "Working directory: $(pwd)"
+            echo which python3
+            echo python3 --version
             echo ./mach --no-interactive bootstrap --application-choice browser
             echo ./mach configure
             echo ./mach build --jobs 3
@@ -227,13 +231,9 @@ jobs:
           ) > build-vela.sh
           echo === Build script contents ===
           type build-vela.sh
-          echo === Finding bash.exe ===
-          dir /s /b C:\mozilla-build\msys2\bin\bash.exe 2>nul
-          dir /s /b C:\mozilla-build\msys2\usr\bin\bash.exe 2>nul
           echo === Running mach bootstrap, configure, and build ===
-          set PATH=C:\sccache;C:\mozilla-build\python3;C:\mozilla-build\bin;C:\mozilla-build\msys2\bin;C:\mozilla-build\msys2\usr\bin;%PATH%
           set MSYSTEM=MINGW64
-          "C:\mozilla-build\msys2\usr\bin\bash.exe" --login -c "cd /d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai && bash build-vela.sh"
+          "C:\mozilla-build\msys2\usr\bin\bash.exe" --login -c "bash /d/a/firefox-browser-esr-z.ai/firefox-browser-esr-z.ai/build-vela.sh"
 
       # ---------------------------------------------------------------- *
       # 8. Diagnostics on failure.
