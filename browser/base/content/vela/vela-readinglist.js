@@ -4,15 +4,13 @@
 
 /*
  * VelaReadingList — a lightweight, pref-backed reading list.
- *
- * Distinct from bookmarks: a flat, chronological list of pages the user
- * intends to read later. Items are added from the Vela menu or the
- * page context menu.
- *
- * Storage: a single string pref "vela.readinglist.items" containing
- * a JSON-encoded array of { url, title, addedAt } objects. Capped at
- * 500 items to keep the pref small.
  */
+
+if (typeof Services === "undefined") {
+  var { Services } = ChromeUtils.importESModule(
+    "resource://gre/modules/Services.sys.mjs"
+  );
+}
 
 const VelaReadingList = {
   PREF: "vela.readinglist.items",

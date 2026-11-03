@@ -6,13 +6,7 @@
  * Vela Harbor — sidebar panel logic.
  *
  * Wires up the five Harbor tabs (Bookmarks, History, Downloads, Reading,
- * Notes) to their data sources:
- *
- *   - Bookmarks : PlacesUtils.bookmarks (read-only tree, top-level + recent)
- *   - History   : PlacesUtils.history   (recent visit query)
- *   - Downloads : DownloadsCommon.getData()  (active + completed)
- *   - Reading   : VelaReadingList (Vela's own pref-backed list)
- *   - Notes     : VelaQuickNotes  (Vela's own pref-backed scratchpad)
+ * Notes) to their data sources.
  *
  * The panel is chrome-privileged, so it can use Services, ChromeUtils
  * and XPCOM directly.
@@ -31,12 +25,23 @@ ChromeUtils.defineESModuleGetters(lazy, {
 });
 
 // Vela's own modules — loaded synchronously since they're small.
-Services.scriptloader.loadSubScript(
-  "chrome://browser/content/vela/vela-readinglist.js", this
-);
-Services.scriptloader.loadSubScript(
-  "chrome://browser/content/vela/vela-quicknotes.js", this
-);
+// Use a try/catch so if one fails to load, the panel still partially works.
+let VelaReadingList = null;
+let VelaQuickNotes = null;
+try {
+  Services.scriptloader.loadSubScript(
+    "chrome://browser/content/vela/vela-readinglist.js"
+  );
+} catch (e) {
+  console.error("Harbor: failed to load vela-readinglist.js", e);
+}
+try {
+  Services.scriptloader.loadSubScript(
+    "chrome://browser/content/vela/vela-quicknotes.js"
+  );
+} catch (e) {
+  console.error("Harbor: failed to load vela-quicknotes.js", e);
+}
 
 const Harbor = {
   _activeTab: "bookmarks",
@@ -50,10 +55,12 @@ const Harbor = {
 
     // Search filter.
     const search = document.getElementById("harbor-search");
-    search.addEventListener("input", () => {
-      this._filter = search.value.trim().toLowerCase();
-      this._renderActive();
-    });
+    if (search) {
+      search.addEventListener("input", () => {
+        this._filter = search.value.trim().toLowerCase();
+        this._renderActive();
+      });
+    }
 
     // Notes editor — load and wire up auto-save.
     this._initNotes();
@@ -71,7 +78,11 @@ const Harbor = {
       tab.setAttribute("aria-selected", tab.dataset.tab === name ? "true" : "false");
     }
     for (const panel of document.querySelectorAll(".harbor-panel")) {
-      panel.hidden = panel.dataset.panel !== name ? "hidden" : null;
+      if (panel.dataset.panel === name) {
+        panel.removeAttribute("hidden");
+      } else {
+        panel.setAttribute("hidden", "hidden");
+      }
     }
     this._renderActive();
   },

@@ -541,22 +541,24 @@ var VelaBrowser = {
 
   /**
    * Adds the current page to the Vela Reading List.
-   * Loaded lazily so the vela-readinglist.js module is only pulled in
-   * when the feature is first used.
+   * The VelaReadingList module is loaded lazily on first use.
    */
   addToReadingList(url, title) {
+    // Load the reading-list module if not already loaded.
     if (!this._readingListLoaded) {
-      Services.scriptloader.loadSubScript(
-        "chrome://browser/content/vela/vela-readinglist.js", this
-      );
-      if (typeof VelaReadingList !== "undefined") {
-        this.VelaReadingList = VelaReadingList;
+      try {
+        Services.scriptloader.loadSubScript(
+          "chrome://browser/content/vela/vela-readinglist.js"
+        );
+        this._readingListLoaded = true;
+      } catch (e) {
+        console.error("Vela: could not load vela-readinglist.js", e);
+        return;
       }
-      this._readingListLoaded = true;
     }
-    const RL = this.VelaReadingList;
-    if (!RL) {
-      console.warn("Vela: reading-list module not available");
+    // VelaReadingList is defined as a global var in the subscript.
+    if (typeof VelaReadingList === "undefined" || !VelaReadingList) {
+      console.warn("Vela: VelaReadingList not available after loadSubScript");
       return;
     }
     // Default to current tab.
@@ -568,24 +570,25 @@ var VelaBrowser = {
       title = browser.contentTitle || tab.label || url;
     }
     if (!url) return;
-    RL.add(url, title || url);
-    // Brief confirmation.
+    VelaReadingList.add(url, title || url);
+    // Brief confirmation via the notification bar.
     try {
       const notifications = document.getElementById("global-notificationbox");
       if (notifications) {
-        notifications.appendNotification(
+        const note = notifications.appendNotification(
           "vela-readinglist-added",
-          { label: `Added to Reading List: ${title || url}`,
+          {
+            label: `Added to Reading List: ${title || url}`,
             priority: notifications.PRIORITY_INFO_LOW,
-            eventCallback: () => {},
           },
-          [/* no buttons */]
+          null
         );
         // Auto-dismiss after 2.5s.
-        setTimeout(() => {
-          const n = notifications.getNotificationWithValue("vela-readinglist-added");
-          if (n) notifications.removeNotification(n);
-        }, 2500);
+        if (note) {
+          setTimeout(() => {
+            try { notifications.removeNotification(note); } catch (e) {}
+          }, 2500);
+        }
       }
     } catch (e) {
       console.debug("Vela: could not show reading-list notification", e);

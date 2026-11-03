@@ -4,12 +4,13 @@
 
 /*
  * VelaQuickNotes — a pref-backed scratchpad.
- *
- * A single string of notes that persists across sessions, stored in the
- * pref "vela.notes.text". Used by the Harbor sidebar's Notes tab.
- *
- * The text is capped at 64 KB to keep the pref store small.
  */
+
+if (typeof Services === "undefined") {
+  var { Services } = ChromeUtils.importESModule(
+    "resource://gre/modules/Services.sys.mjs"
+  );
+}
 
 const VelaQuickNotes = {
   PREF: "vela.notes.text",

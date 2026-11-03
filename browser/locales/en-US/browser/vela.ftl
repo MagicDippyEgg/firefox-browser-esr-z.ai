@@ -3,9 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Vela — original browser feature strings.
-#
-# These strings back the four signature Vela features (Focus Mode, Harbor,
-# Tides, Sepia Reader) and the about:vela home page.
 
 ## about:vela page
 
@@ -24,6 +21,8 @@ vela-harbor-title = Harbor
 vela-harbor-bookmarks = Bookmarks
 vela-harbor-history = History
 vela-harbor-downloads = Downloads
+vela-harbor-reading = Reading
+vela-harbor-notes = Notes
 
 ## Tides (tab groups)
 
@@ -36,19 +35,31 @@ vela-sepia-reader-toggle = Toggle Sepia Reader
 vela-sepia-reader-on = Sepia Reader on
 vela-sepia-reader-off = Sepia Reader off
 
-## App menu / shortcuts
+## App menu / shortcuts — these need .label for toolbarbutton/menuitem
 
-vela-menu-focus-mode = Focus Mode
-vela-menu-harbor = Harbor
-vela-menu-new-tide = New Tide
-vela-menu-sepia-reader = Sepia Reader
-vela-menu-about-vela = About Vela
-vela-menu-workspaces = Workspaces
-vela-menu-add-to-reading-list = Add to Reading List
-vela-menu-duplicate-tab = Duplicate Tab
-vela-menu-calm-tabs = Calm Tabs
-vela-menu-pin-tab = Pin / Unpin Tab
-vela-menu-tab-overview = Tab Overview
+vela-menu-focus-mode =
+    .label = Focus Mode
+vela-menu-harbor =
+    .label = Harbor
+vela-menu-new-tide =
+    .label = New Tide
+vela-menu-sepia-reader =
+    .label = Sepia Reader
+vela-menu-about-vela =
+    .label = About Vela
+vela-menu-workspaces =
+    .label = Workspaces
+vela-menu-add-to-reading-list =
+    .label = Add to Reading List
+    .accesskey = R
+vela-menu-duplicate-tab =
+    .label = Duplicate Tab
+vela-menu-calm-tabs =
+    .label = Calm Tabs
+vela-menu-pin-tab =
+    .label = Pin / Unpin Tab
+vela-menu-tab-overview =
+    .label = Tab Overview
 
 ## Workspaces
 
@@ -60,7 +71,7 @@ vela-workspaces-active = Active workspace: { $name } ({ $tabs } tabs)
 
 vela-reading-list-added = Added to Reading List: { $title }
 
-## Sepia Reader
+## Sepia Reader panel
 
 vela-sepia-reader-title = Sepia Reader
 vela-sepia-reader-warmth = Warmth

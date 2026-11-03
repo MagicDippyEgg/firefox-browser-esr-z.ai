@@ -22,6 +22,12 @@
  * of vela-browser.js). It uses the global `gBrowser` and `Services`.
  */
 
+if (typeof Services === "undefined") {
+  var { Services } = ChromeUtils.importESModule(
+    "resource://gre/modules/Services.sys.mjs"
+  );
+}
+
 const VelaWorkspaces = {
   PREF_LIST: "vela.workspaces.list",
   PREF_ACTIVE: "vela.workspaces.active",
