@@ -79,6 +79,38 @@ jobs:
           Get-PSDrive C | Format-Table
 
       # ---------------------------------------------------------------- *
+      # 1b. Create a large page file.
+      #
+      #     The Windows runner has 16 GB RAM. Firefox's parallel
+      #     compilation with clang-cl can briefly exceed that, causing
+      #     "Not enough memory resources are available" (error 0x8)
+      #     crashes. A 16 GB page file provides overflow capacity.
+      # ---------------------------------------------------------------- *
+      - name: Create 16 GB page file
+        shell: pwsh
+        run: |
+          Write-Host "=== Memory before page file ==="
+          Get-CimInstance Win32_OperatingSystem | Select-Object TotalVisibleMemorySize, FreePhysicalMemory
+          # Create a 16 GB page file on D: (which has more free space).
+          $pageFile = "D:\pagefile.sys"
+          $initialSize = 16384
+          $maxSize = 16384
+          # Disable automatic page file management.
+          $cs = Get-CimInstance -ClassName Win32_ComputerSystem
+          if ($cs.AutomaticManagedPagefile) {
+            Set-CimInstance -InputObject $cs -Property @{AutomaticManagedPagefile=$false}
+          }
+          # Set the page file.
+          $pf = Get-CimInstance -ClassName Win32_PageFileSetting -ErrorAction SilentlyContinue
+          if ($pf) {
+            Set-CimInstance -InputObject $pf -Property @{InitialSize=$initialSize; MaximumSize=$maxSize}
+          } else {
+            New-CimInstance -ClassName Win32_PageFileSetting -Property @{Name=$pageFile; InitialSize=$initialSize; MaximumSize=$maxSize}
+          }
+          Write-Host "Page file created (16 GB on D:)."
+          Write-Host "=== Note: page file takes effect after reboot, but Windows may use it immediately for new allocations ==="
+
+      # ---------------------------------------------------------------- *
       # 2. Check out the repository.
       #
       #    Firefox's source tree contains test files with paths longer
@@ -171,7 +203,7 @@ jobs:
           ac_add_options --disable-updater
           ac_add_options --disable-geckodriver
           ac_add_options --with-ccache=sccache
-          mk_add_options MOZ_PARALLEL_BUILD=-1
+          mk_add_options MOZ_PARALLEL_BUILD=2
           mk_add_options AUTOCLOBBER=1
           mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-vela
           "@
@@ -226,7 +258,7 @@ jobs:
             echo python3 --version
             echo ./mach --no-interactive bootstrap --application-choice browser
             echo ./mach configure
-            echo ./mach build --jobs 3
+            echo ./mach build --jobs 2
             echo ./mach package
           ) > build-vela.sh
           echo === Build script contents ===
