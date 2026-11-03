@@ -1,0 +1,534 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/*
+ * Vela — Settings page (about:preferences) redesign.
+ *
+ * This stylesheet is loaded by about:preferences via a <link> tag added
+ * in preferences.xhtml. It overrides Firefox's default settings page
+ * appearance with the Vela design language: warm parchment background,
+ * terracotta accent, rounded category sidebar, card-style settings
+ * groups, and custom-styled controls.
+ *
+ * All existing Firefox settings and their functionality are preserved —
+ * only the visual layer changes.
+ */
+
+@namespace html url("http://www.w3.org/1999/xhtml");
+@namespace xul url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* ------------------------------------------------------------------ *
+ * Root tokens — map Vela palette onto the in-content variables
+ * ------------------------------------------------------------------ */
+:root {
+  --vela-cream: #F7F2E8;
+  --vela-paper: #FDFAF3;
+  --vela-sand: #E8DCC4;
+  --vela-mist: #B8AFA1;
+  --vela-ink: #1F1B16;
+  --vela-ink-soft: #4A4238;
+  --vela-terracotta: #C8553D;
+  --vela-terracotta-soft: #E07856;
+  --vela-terracotta-tint: rgba(200, 85, 61, 0.12);
+  --vela-teal: #2D5F5D;
+  --vela-teal-tint: rgba(45, 95, 93, 0.12);
+  --vela-shadow-1: 0 1px 2px rgba(31, 27, 22, 0.06), 0 1px 1px rgba(31, 27, 22, 0.04);
+  --vela-shadow-2: 0 2px 6px rgba(31, 27, 22, 0.08), 0 1px 2px rgba(31, 27, 22, 0.06);
+
+  /* Override Firefox in-content tokens */
+  --in-content-page-background: var(--vela-cream);
+  --in-content-page-color: var(--vela-ink);
+  --in-content-background-color: var(--vela-paper);
+  --in-content-text-color: var(--vela-ink);
+  --in-content-deemphasized-text: var(--vela-ink-soft);
+  --in-content-box-background: var(--vela-paper);
+  --in-content-box-background-odd: var(--vela-sand);
+  --in-content-box-border-color: rgba(31, 27, 22, 0.10);
+  --in-content-item-hover: var(--vela-terracotta-tint);
+  --in-content-item-hover-text: var(--vela-ink);
+  --in-content-item-selected: var(--vela-terracotta);
+  --in-content-item-selected-text: #FFFFFF;
+  --in-content-accent-color: var(--vela-terracotta);
+  --in-content-accent-color-active: color-mix(in srgb, var(--vela-terracotta) 80%, #000);
+  --in-content-border-color: rgba(31, 27, 22, 0.10);
+  --in-content-border-hover: rgba(31, 27, 22, 0.18);
+  --in-content-border-active: var(--vela-terracotta);
+  --in-content-primary-button-background: var(--vela-terracotta);
+  --in-content-primary-button-background-hover: var(--vela-terracotta-soft);
+  --in-content-primary-button-background-active: color-mix(in srgb, var(--vela-terracotta) 80%, #000);
+  --in-content-primary-button-text-color: #FFFFFF;
+  --in-content-button-background: var(--vela-sand);
+  --in-content-button-background-hover: var(--vela-terracotta-tint);
+  --in-content-button-background-active: color-mix(in srgb, var(--vela-terracotta) 22%, transparent);
+  --in-content-button-text-color: var(--vela-ink);
+  --in-content-link-color: var(--vela-terracotta);
+  --in-content-link-color-hover: var(--vela-terracotta-soft);
+  --in-content-link-color-active: color-mix(in srgb, var(--vela-terracotta) 76%, #000);
+  --in-content-link-color-visited: color-mix(in srgb, var(--vela-terracotta) 76%, #000);
+  --in-content-focus-outline-color: var(--vela-terracotta);
+  --in-content-border-radius: 8px;
+  --in-content-button-border-radius: 6px;
+  --in-content-table-background: var(--vela-paper);
+  --in-content-card-border-color: rgba(31, 27, 22, 0.08);
+  --in-content-card-shadow: var(--vela-shadow-1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vela-cream: #14110D;
+    --vela-paper: #1F1B16;
+    --vela-sand: #2A241D;
+    --vela-mist: #5A5048;
+    --vela-ink: #E8DCC4;
+    --vela-ink-soft: #B8AFA1;
+    --vela-terracotta: var(--vela-terracotta-soft);
+
+    --in-content-page-background: var(--vela-cream);
+    --in-content-page-color: var(--vela-ink);
+    --in-content-background-color: var(--vela-paper);
+    --in-content-text-color: var(--vela-ink);
+    --in-content-deemphasized-text: var(--vela-ink-soft);
+    --in-content-box-background: var(--vela-paper);
+    --in-content-box-background-odd: var(--vela-sand);
+    --in-content-box-border-color: rgba(232, 220, 196, 0.10);
+    --in-content-border-color: rgba(232, 220, 196, 0.10);
+    --in-content-border-hover: rgba(232, 220, 196, 0.18);
+    --in-content-card-border-color: rgba(232, 220, 196, 0.08);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Page background and typography
+ * ------------------------------------------------------------------ */
+html,
+#preferences-root {
+  background-color: var(--vela-cream) !important;
+  color: var(--vela-ink) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Helvetica Neue", Helvetica, Arial,
+               "Noto Sans", "Noto Sans CJK SC", sans-serif !important;
+  -moz-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--vela-cream) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Category sidebar — Vela-styled navigation
+ * ------------------------------------------------------------------ */
+#categories {
+  background-color: var(--vela-paper) !important;
+  border-radius: 14px;
+  border: 1px solid var(--in-content-card-border-color);
+  box-shadow: var(--vela-shadow-1);
+  padding: 8px !important;
+  margin-inline-end: 16px;
+}
+
+#categories .category {
+  border-radius: 8px;
+  padding: 10px 14px !important;
+  margin: 2px 0;
+  color: var(--vela-ink-soft);
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#categories .category:hover {
+  background-color: var(--vela-terracotta-tint);
+  color: var(--vela-ink);
+}
+
+#categories .category[selected],
+#categories .category[selected]:hover {
+  background-color: var(--vela-terracotta) !important;
+  color: #FFFFFF !important;
+}
+
+#categories .category[selected] .category-name {
+  color: #FFFFFF !important;
+}
+
+#categories .category .category-icon {
+  fill: currentColor;
+}
+
+/* ------------------------------------------------------------------ *
+ * Settings panes — card layout
+ * ------------------------------------------------------------------ */
+.main-content {
+  background-color: transparent !important;
+}
+
+.pane-container {
+  background-color: transparent !important;
+}
+
+/* Each settings group (.group-box) becomes a card. */
+.group-box,
+.groupbox-title,
+fieldset,
+.groupbox-body {
+  background-color: var(--vela-paper) !important;
+  border-radius: 14px;
+  border: 1px solid var(--in-content-card-border-color) !important;
+  box-shadow: var(--vela-shadow-1);
+  padding: 20px 24px !important;
+  margin-bottom: 16px;
+}
+
+/* Remove the default fieldset border style. */
+fieldset {
+  border: 1px solid var(--in-content-card-border-color) !important;
+  border-radius: 14px;
+}
+
+/* Section headings inside cards. */
+h1,
+h2,
+h3 {
+  color: var(--vela-ink) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: 24px !important;
+  margin-block: 0 16px !important;
+}
+
+h2 {
+  font-size: 17px !important;
+  margin-block: 0 12px !important;
+}
+
+h3 {
+  font-size: 14px !important;
+  margin-block: 0 8px !important;
+}
+
+/* Section headers in the settings. */
+.header-name {
+  color: var(--vela-ink) !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------------ *
+ * Form controls — Vela-styled
+ * ------------------------------------------------------------------ */
+
+/* Text inputs, search boxes, dropdowns */
+input[type="text"],
+input[type="search"],
+input[type="number"],
+input[type="password"],
+textarea,
+select,
+menulist,
+html|input[type="text"],
+html|input[type="search"],
+html|input[type="number"],
+html|input[type="password"],
+html|textarea,
+html|select {
+  background-color: var(--vela-cream) !important;
+  color: var(--vela-ink) !important;
+  border: 1px solid var(--in-content-border-color) !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  transition: border-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus,
+menulist:focus,
+html|input:focus,
+html|textarea:focus,
+html|select:focus {
+  border-color: var(--vela-terracotta) !important;
+  box-shadow: 0 0 0 3px var(--vela-terracotta-tint) !important;
+  outline: none !important;
+}
+
+/* Buttons */
+button,
+html|button,
+menulist {
+  background-color: var(--vela-sand) !important;
+  color: var(--vela-ink) !important;
+  border: 1px solid var(--in-content-border-color) !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500;
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+button:hover,
+html|button:hover,
+menulist:hover {
+  background-color: var(--vela-terracotta-tint) !important;
+}
+
+button:active,
+html|button:active {
+  background-color: color-mix(in srgb, var(--vela-terracotta) 22%, transparent) !important;
+}
+
+/* Primary buttons */
+button[default],
+button.primary,
+html|button[default] {
+  background-color: var(--vela-terracotta) !important;
+  color: #FFFFFF !important;
+  border-color: transparent !important;
+}
+
+button[default]:hover,
+button.primary:hover,
+html|button[default]:hover {
+  background-color: var(--vela-terracotta-soft) !important;
+}
+
+/* Checkboxes — Vela-styled */
+input[type="checkbox"],
+html|input[type="checkbox"] {
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 1.5px solid var(--vela-mist) !important;
+  border-radius: 4px !important;
+  background-color: var(--vela-paper) !important;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+input[type="checkbox"]:hover,
+html|input[type="checkbox"]:hover {
+  border-color: var(--vela-terracotta) !important;
+}
+
+input[type="checkbox"]:checked,
+html|input[type="checkbox"]:checked {
+  background-color: var(--vela-terracotta) !important;
+  border-color: var(--vela-terracotta) !important;
+}
+
+input[type="checkbox"]:checked::after,
+html|input[type="checkbox"]:checked::after {
+  content: "" !important;
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #FFFFFF !important;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+/* Radio buttons — Vela-styled */
+input[type="radio"],
+html|input[type="radio"] {
+  appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  border: 1.5px solid var(--vela-mist) !important;
+  border-radius: 50% !important;
+  background-color: var(--vela-paper) !important;
+  cursor: pointer;
+  transition: border-color 140ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+input[type="radio"]:checked,
+html|input[type="radio"]:checked {
+  border-color: var(--vela-terracotta) !important;
+  background-color: var(--vela-paper) !important;
+}
+
+input[type="radio"]:checked::after,
+html|input[type="radio"]:checked::after {
+  content: "" !important;
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--vela-terracotta);
+  margin: 2px;
+}
+
+/* Toggle switches (used in some settings) */
+toggle-button {
+  --toggle-background-color: var(--vela-sand) !important;
+  --toggle-background-color-hover: var(--vela-terracotta-tint) !important;
+  --toggle-background-color-active: var(--vela-terracotta) !important;
+  --toggle-background-color-pressed: var(--vela-terracotta) !important;
+  --toggle-dot-background-color: var(--vela-paper) !important;
+  --toggle-border-color: transparent !important;
+}
+
+/* Range sliders */
+input[type="range"],
+html|input[type="range"] {
+  accent-color: var(--vela-terracotta) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Links
+ * ------------------------------------------------------------------ */
+a,
+html|a,
+.text-link,
+.text-link:hover {
+  color: var(--vela-terracotta) !important;
+  text-decoration: none;
+}
+
+a:hover,
+html|a:hover {
+  color: var(--vela-terracotta-soft) !important;
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ *
+ * Search bar (in the settings)
+ * ------------------------------------------------------------------ */
+#searchInput,
+html|input#searchInput {
+  background-color: var(--vela-paper) !important;
+  border: 1px solid var(--in-content-border-color) !important;
+  border-radius: 999px !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+}
+
+#searchInput:focus,
+html|input#searchInput:focus {
+  border-color: var(--vela-terracotta) !important;
+  box-shadow: 0 0 0 3px var(--vela-terracotta-tint) !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tables (e.g. in the Applications / Fonts settings)
+ * ------------------------------------------------------------------ */
+table,
+.tree-table {
+  background-color: var(--vela-paper) !important;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th,
+table treecol {
+  background-color: var(--vela-sand) !important;
+  color: var(--vela-ink) !important;
+  font-weight: 600;
+  padding: 8px 12px !important;
+}
+
+td,
+treechildren::-moz-tree-cell {
+  padding: 6px 12px !important;
+  border-bottom: 1px solid var(--in-content-border-color);
+}
+
+/* ------------------------------------------------------------------ *
+ * Dialog sub-windows (e.g. Clear History, Fonts)
+ * ------------------------------------------------------------------ */
+.dialogBox,
+.dialogFrame {
+  background-color: var(--vela-paper) !important;
+  color: var(--vela-ink) !important;
+  border-radius: 14px;
+}
+
+.dialogTitle {
+  color: var(--vela-ink) !important;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ *
+ * Scrollbars
+ * ------------------------------------------------------------------ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vela-mist) transparent;
+}
+
+/* ------------------------------------------------------------------ *
+ * Selection
+ * ------------------------------------------------------------------ */
+::selection {
+  background-color: var(--vela-terracotta-tint);
+  color: var(--vela-ink);
+}
+
+/* ------------------------------------------------------------------ *
+ * "More from Mozilla" / promotional sections — hide them.
+ * Vela is its own product; we don't show Mozilla promos.
+ * ------------------------------------------------------------------ */
+#moreFromMozillaCategory,
+.more-from-mozilla,
+#mozilla-category {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------------ *
+ * Vela feature settings card (if we add one to about:preferences)
+ * ------------------------------------------------------------------ */
+.vela-settings-card {
+  background-color: var(--vela-paper);
+  border: 1px solid var(--in-content-card-border-color);
+  border-radius: 14px;
+  box-shadow: var(--vela-shadow-1);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.vela-settings-card h2 {
+  color: var(--vela-terracotta);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.vela-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--in-content-border-color);
+}
+
+.vela-settings-row:last-child {
+  border-bottom: none;
+}
+
+.vela-settings-label {
+  flex: 1;
+  font-size: 13px;
+  color: var(--vela-ink);
+}
+
+.vela-settings-desc {
+  display: block;
+  font-size: 11px;
+  color: var(--vela-ink-soft);
+  margin-top: 2px;
+}

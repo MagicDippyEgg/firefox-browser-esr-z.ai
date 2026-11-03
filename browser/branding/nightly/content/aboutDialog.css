@@ -2,24 +2,36 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+/* Vela about dialog — warm parchment background with terracotta accents. */
+
 @media not ((prefers-contrast) and (prefers-color-scheme: light)) {
   #aboutDialogContainer {
-    background-color: #20123a;
-    color: #fff;
+    background-color: #1F1B16;
+    color: #F7F2E8;
     color-scheme: dark;
   }
 
   #bottomBox {
-    background-color: hsla(235, 43%, 10%, 0.5);
+    background-color: rgba(31, 27, 22, 0.65);
+  }
+
+  #trademark {
+    color: #B8AFA1;
   }
 }
 
 #rightBox {
-  background-size: auto 64px;
+  background-size: auto 44px;
   margin-inline: 30px;
-  padding-top: 96px;
+  padding-top: 76px;
 }
 
 #bottomBox {
   padding: 15px 10px;
+}
+
+#trademark {
+  font-size: xx-small;
+  text-align: center;
+  margin-block: 10px;
 }
