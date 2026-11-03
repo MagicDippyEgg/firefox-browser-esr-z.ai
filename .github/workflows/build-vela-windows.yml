@@ -80,7 +80,19 @@ jobs:
 
       # ---------------------------------------------------------------- *
       # 2. Check out the repository.
+      #
+      #    Firefox's source tree contains test files with paths longer
+      #    than Windows' default 260-character limit (e.g. files in
+      #    testing/web-platform/tests/third_party/test262/). We must
+      #    enable git's long-path support BEFORE the checkout, otherwise
+      #    it fails with "Filename too long".
       # ---------------------------------------------------------------- *
+      - name: Enable git long paths
+        shell: pwsh
+        run: |
+          git config --system core.longpaths true
+          Write-Host "git core.longpaths enabled"
+
       - name: Checkout Vela source
         uses: actions/checkout@v4
         with:
