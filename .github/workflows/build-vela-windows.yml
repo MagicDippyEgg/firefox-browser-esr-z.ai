@@ -128,10 +128,19 @@ jobs:
         run: |
           $version = "0.8.2"
           $url = "https://github.com/mozilla/sccache/releases/download/v$version/sccache-v$version-x86_64-pc-windows-msvc.zip"
+          Write-Host "Downloading sccache from $url"
           Invoke-WebRequest -Uri $url -OutFile sccache.zip
-          Expand-Archive -Path sccache.zip -DestinationPath C:\sccache -Force
-          $sccacheExe = Get-ChildItem C:\sccache -Recurse -Filter sccache.exe | Select-Object -First 1
-          Copy-Item $sccache.FullName "C:\sccache\sccache.exe" -Force
+          # Extract to a temp dir first, then find and copy sccache.exe.
+          Expand-Archive -Path sccache.zip -DestinationPath C:\sccache-tmp -Force
+          $sccacheExe = Get-ChildItem C:\sccache-tmp -Recurse -Filter sccache.exe | Select-Object -First 1
+          if (-not $sccacheExe) {
+            Write-Host "ERROR: sccache.exe not found in extracted zip"
+            Write-Host "Contents of C:\sccache-tmp:"
+            Get-ChildItem C:\sccache-tmp -Recurse | Format-Table FullName
+            exit 1
+          }
+          New-Item -ItemType Directory -Path C:\sccache -Force | Out-Null
+          Copy-Item $sccacheExe.FullName "C:\sccache\sccache.exe" -Force
           Write-Host "sccache installed at C:\sccache\sccache.exe"
           & "C:\sccache\sccache.exe" --version
 
